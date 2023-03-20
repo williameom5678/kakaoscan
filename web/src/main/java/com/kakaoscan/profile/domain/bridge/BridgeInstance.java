@@ -1,7 +1,6 @@
 package com.kakaoscan.profile.domain.bridge;
 
 import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -14,8 +13,9 @@ import java.util.concurrent.locks.ReentrantLock;
  * TCP Server <-> Netty TCP Client <-> WebSocket Server
  */
 @Log4j2
-@Component
 public class BridgeInstance {
+    private BridgeInstance() {}
+
     private static final ReentrantLock lock = new ReentrantLock();
     /**
      * 연결 된 클라이언트 목록
@@ -24,9 +24,9 @@ public class BridgeInstance {
     /**
      * to tcp
      */
-    private static String socketSendMessage = new String();
+    private static String message = new String();
 
-    public Map<String, ClientQueue> getClients() {
+    public static Map<String, ClientQueue> getClients() {
         return clients;
     }
 
@@ -35,7 +35,7 @@ public class BridgeInstance {
      * @param session
      * @return
      */
-    public long getTurn(String session) {
+    public static long getTurn(String session) {
         List<Map.Entry<String, ClientQueue>> clientList = new LinkedList<>(clients.entrySet());
         clientList.sort((Comparator.comparingLong(o -> o.getValue().getRequestTick())));
 
@@ -48,20 +48,24 @@ public class BridgeInstance {
         return -1;
     }
 
-    public String getSocketSendMessage() {
-        return socketSendMessage;
+    public static String getMessage() {
+        return message;
     }
 
     /**
      * 소켓 서버에 메세지를 보낸다
      * @param message
      */
-    public void socketSend(String message) {
+    public static void send(String message) {
         lock.lock();
         try {
-            socketSendMessage = message;
+            BridgeInstance.message = message;
         } finally {
             lock.unlock();
         }
+    }
+
+    public static void clear() {
+        send("");
     }
 }

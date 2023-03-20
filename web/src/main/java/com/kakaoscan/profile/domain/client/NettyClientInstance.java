@@ -20,8 +20,6 @@ public class NettyClientInstance {
     private static final ReentrantLock lock = new ReentrantLock();
     private static final Bootstrap bootstrap[] = {new Bootstrap()};
 
-    private final BridgeInstance bi;
-
     /**
      * 서버 접속 tick, -1: 연결 X
      */
@@ -53,10 +51,10 @@ public class NettyClientInstance {
                 setStartTime(-1);
                 log.error("[server connect fail] " + future.cause());
 
-                if (bi.getClients().containsKey(session)) {
-                    ClientQueue clientQueue = bi.getClients().get(session);
+                if (BridgeInstance.getClients().containsKey(session)) {
+                    ClientQueue clientQueue = BridgeInstance.getClients().get(session);
                     clientQueue.setFail(true);
-                    bi.getClients().put(session, clientQueue);
+                    BridgeInstance.getClients().put(session, clientQueue);
                 }
             }
         });

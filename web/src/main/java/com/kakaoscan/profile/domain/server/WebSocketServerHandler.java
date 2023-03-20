@@ -12,7 +12,6 @@ import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.domain.model.UseCount;
 import com.kakaoscan.profile.domain.service.AccessLimitService;
 import com.kakaoscan.profile.domain.service.AddedNumberService;
-import com.kakaoscan.profile.domain.service.UserHistoryService;
 import com.kakaoscan.profile.domain.service.UserRequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -51,9 +50,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
     private final NettyClientInstance nettyClientInstance;
     private final AccessLimitService accessLimitService;
     private final UserRequestService userRequestService;
-    private final UserHistoryService userHistoryService;
     private final AddedNumberService addedNumberService;
-    private final BridgeInstance bi;
     private final KafkaProducerService producerService;
 
     public String getRemoteAddress(WebSocketSession session) {
@@ -73,7 +70,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
     }
 
     public void removeSessionHash(WebSocketSession session) {
-        bi.getClients().remove(session.getId());
+        BridgeInstance.getClients().remove(session.getId());
         clientsRemoteAddress.remove(session);
     }
 
@@ -94,7 +91,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                 throw new InvalidAccess(MessageSendType.USER_NO_PERMISSION.getMessage());
             }
 
-            ClientQueue clientQueue = bi.getClients().get(session.getId());
+            ClientQueue clientQueue = BridgeInstance.getClients().get(session.getId());
             if (clientQueue == null) {
                 return;
             }
@@ -124,15 +121,15 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
 
                 // put turn
                 if (clientQueue.getRequestTick() == Long.MAX_VALUE) {
-                    bi.getClients().put(session.getId(), new ClientQueue(System.currentTimeMillis(), 0, System.currentTimeMillis() + REQUEST_TIMEOUT_TICK, receive, "", false, false));
+                    BridgeInstance.getClients().put(session.getId(), new ClientQueue(System.currentTimeMillis(), 0, System.currentTimeMillis() + REQUEST_TIMEOUT_TICK, receive, "", false, false));
                 }
 
             } else if (MessageSendType.HEARTBEAT.getMessage().equals(receive)) {
                 // update
                 clientQueue.setLastSendTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
-                bi.getClients().put(session.getId(), clientQueue);
+                BridgeInstance.getClients().put(session.getId(), clientQueue);
 
-                long turn = bi.getTurn(session.getId());
+                long turn = BridgeInstance.getTurn(session.getId());
 
                 // 대기큐가 1명 이상이면 남은 대기 시간 전달
                 String viewMessage = String.format(MessageSendType.REMAINING_QUEUE.getMessage(), turn, turn * EVG_WAITING_SEC);
@@ -145,7 +142,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                     }
 
                     // check connected
-                    clientQueue = bi.getClients().get(session.getId());
+                    clientQueue = BridgeInstance.getClients().get(session.getId());
                     if (clientQueue.isFail()) {
                         throw new InvalidAccess(String.format(MessageSendType.SERVER_INSTANCE_NOT_RUN.getMessage()));
                     }
@@ -157,17 +154,17 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                         }
                     } else {
                         clientQueue.setLastReceivedTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
-                        bi.getClients().put(session.getId(), clientQueue);
+                        BridgeInstance.getClients().put(session.getId(), clientQueue);
                     }
 
                     // send (세션/메세지타입/번호/아이피해시/이메일)
                     if (clientQueue.getRequest().length() > 0) {
-                        bi.socketSend(String.format("[%s]%s:%s<%s>(%s)", session.getId(), MessageSendType.PROFILE.getMessage(), clientQueue.getRequest(), getRemoteAddress(session), user.getEmail()));
+                        BridgeInstance.send(String.format("[%s]%s:%s<%s>(%s)", session.getId(), MessageSendType.PROFILE.getMessage(), clientQueue.getRequest(), getRemoteAddress(session), user.getEmail()));
                     }
 
                     viewMessage = MessageSendType.TURN_LOCAL.getMessage();
 
-                    ClientQueue queue = bi.getClients().get(session.getId());
+                    ClientQueue queue = BridgeInstance.getClients().get(session.getId());
                     // check server response
                     if (queue.getResponse().length() > 0) {
                         viewMessage = queue.getResponse();
@@ -208,7 +205,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
             }
         }
 
-        bi.getClients().put(session.getId(), new ClientQueue(Long.MAX_VALUE, 0, 0, "", "", false, false));
+        BridgeInstance.getClients().put(session.getId(), new ClientQueue(Long.MAX_VALUE, 0, 0, "", "", false, false));
 
         clientsRemoteAddress.put(session, remoteAddress);
 

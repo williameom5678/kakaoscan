@@ -24,7 +24,6 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     private static final int REQUEST_TIMEOUT_TICK = 3 * 1000;
 
     private final NettyClientInstance nettyClientInstance;
-    private final BridgeInstance bi;
 
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         if (!nettyClientInstance.isConnected()) {
@@ -45,12 +44,12 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
             String wsSession = s[0];
             String jsonMessage = s[1];
             // check session
-            if (!bi.getClients().containsKey(wsSession)) {
-                bi.getClients().remove(wsSession);
+            if (!BridgeInstance.getClients().containsKey(wsSession)) {
+                BridgeInstance.getClients().remove(wsSession);
                 ctx.close();
 
             }else {
-                ClientQueue clientQueue = bi.getClients().get(wsSession);
+                ClientQueue clientQueue = BridgeInstance.getClients().get(wsSession);
 
                 clientQueue.setLastReceivedTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
 
@@ -59,10 +58,10 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
                     clientQueue.setResponse(jsonMessage);
                     clientQueue.setConnected(true);
                     clientQueue.setFail(false);
-                    bi.socketSend("");
+                    BridgeInstance.clear();
                 }
 
-                bi.getClients().put(wsSession, clientQueue);
+                BridgeInstance.getClients().put(wsSession, clientQueue);
             }
         }finally {
             buf.release();
@@ -78,13 +77,13 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        if (bi.getSocketSendMessage().length() == 0) {
+        if (BridgeInstance.getMessage().length() == 0) {
             return;
         }
 
         IdleStateEvent e = (IdleStateEvent) evt;
         if (e.state() == IdleState.WRITER_IDLE) {
-            byte[] buffer = bi.getSocketSendMessage().getBytes(Charset.forName("euc-kr"));
+            byte[] buffer = BridgeInstance.getMessage().getBytes(Charset.forName("euc-kr"));
             String decodeString = new String(buffer, "euc-kr");
 
             ctx.writeAndFlush(Unpooled.copiedBuffer(decodeString, Charset.forName("euc-kr")));
@@ -92,7 +91,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
         if (e.state() == IdleState.READER_IDLE) {
             ctx.close();
-            bi.socketSend("");
+            BridgeInstance.clear();
         }
     }
 
