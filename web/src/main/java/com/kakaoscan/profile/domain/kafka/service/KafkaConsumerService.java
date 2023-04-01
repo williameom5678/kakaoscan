@@ -36,8 +36,8 @@ public class KafkaConsumerService {
 
             switch (eventType) {
                 case SCAN_AFTER_EVENT:
-                    KafkaEvent kafkaDbAccessEvent = new KafkaScanAfterEvent(map);
-                    eventPublisher.publishEvent(kafkaDbAccessEvent);
+                    KafkaEvent kafkaScanAfterEvent = new KafkaScanAfterEvent(map);
+                    eventPublisher.publishEvent(kafkaScanAfterEvent);
                     break;
 
                 case SEND_MAIL_EVENT:
