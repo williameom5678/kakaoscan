@@ -270,17 +270,17 @@ begin
 
             if (IsWindowEnabled(hEditFriendName)) And (IsWindowEnabled(hEditPhoneNumber)) then
             begin
-              Sleep(100);
+              Sleep(200);
 
               SendMessage(hEditFriendName, WM_SETTEXT, 0, LParam(PChar(PhoneNumber)));
               SendMessage(hEditPhoneNumber, WM_SETTEXT, 0, LParam(PChar(PhoneNumber)));
 
-              Sleep(100);
+              Sleep(200);
               PostMessage(AddFriendFrameHandle, WM_KEYDOWN, VK_RETURN, 0);
 
               while FindWindowEx(AddFriendHandle, 0, '#32770', nil) > 0 do
               begin
-                Sleep(250);
+                Sleep(500);
                 SendMessage(AddFriendHandle, WM_CLOSE, 0, 0);
               end;
 
