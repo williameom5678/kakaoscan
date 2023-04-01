@@ -49,14 +49,16 @@ function init(server) {
         socket = new WebSocket((document.location.protocol === "http:" ? 'ws://' : 'wss://') + server + '/kakaoscan');
 
         socket.onclose = function(event) {
-            console.log('Socket is closed. Reconnect will be attempted in 1 second.', event.reason);
+            console.log('Socket is closed', event.reason);
             setTimeout(function() {
                 connect();
             }, 1000);
         };
         socket.onerror = function(err) {
             console.error('Socket encountered error: ', err.message, 'Close socket');
-            socket.close();
+            setTimeout(function() {
+                connect();
+            }, 1000);
         };
         socket.onmessage = function (event) {
             if (event.data.length > 0) {
