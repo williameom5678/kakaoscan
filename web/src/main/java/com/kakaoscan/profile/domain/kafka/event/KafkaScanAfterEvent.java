@@ -5,16 +5,16 @@ import lombok.Getter;
 import java.util.Map;
 
 @Getter
-public class KafkaDbAccessEvent extends KafkaEvent {
+public class KafkaScanAfterEvent extends KafkaEvent {
     private String email;
     private String phoneNumber;
     private String scanResultJson;
 
-    public KafkaDbAccessEvent() {
+    public KafkaScanAfterEvent() {
         super(new Object());
     }
 
-    public KafkaDbAccessEvent(Map<String, Object> source) {
+    public KafkaScanAfterEvent(Map<String, Object> source) {
         super(new Object());
         this.email = (String) source.get("email");
         this.phoneNumber = (String) source.get("phoneNumber");

@@ -174,7 +174,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                         map.put("email", user.getEmail());
                         map.put("phoneNumber", queue.getRequest());
                         map.put("scanResultJson", viewMessage);
-                        producerService.send(KafkaEventType.DB_ACCESS_EVENT, map);
+                        producerService.send(KafkaEventType.SCAN_AFTER_EVENT, map);
                     }
                 }
 

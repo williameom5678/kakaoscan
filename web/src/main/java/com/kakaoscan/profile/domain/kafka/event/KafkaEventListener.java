@@ -25,7 +25,7 @@ public class KafkaEventListener {
 
     @Async
     @EventListener
-    public void onDbAccessEvent(KafkaDbAccessEvent event) {
+    public void onScanAfterEvent(KafkaScanAfterEvent event) {
         try {
             ScanResult scanResult = ScanResult.deserialize(event.getScanResultJson());
             if (scanResult != null && scanResult.getErrorMessage() == null) {

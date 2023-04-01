@@ -2,7 +2,7 @@ package com.kakaoscan.profile.domain.kafka.service;
 
 import com.kakaoscan.profile.domain.enums.KafkaEventType;
 import com.kakaoscan.profile.domain.kafka.config.KafkaProperties;
-import com.kakaoscan.profile.domain.kafka.event.KafkaDbAccessEvent;
+import com.kakaoscan.profile.domain.kafka.event.KafkaScanAfterEvent;
 import com.kakaoscan.profile.domain.kafka.event.KafkaEvent;
 import com.kakaoscan.profile.domain.kafka.event.KafkaSendMailEvent;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +35,8 @@ public class KafkaConsumerService {
             Map<String, Object> map = record.value();
 
             switch (eventType) {
-                case DB_ACCESS_EVENT:
-                    KafkaEvent kafkaDbAccessEvent = new KafkaDbAccessEvent(map);
+                case SCAN_AFTER_EVENT:
+                    KafkaEvent kafkaDbAccessEvent = new KafkaScanAfterEvent(map);
                     eventPublisher.publishEvent(kafkaDbAccessEvent);
                     break;
 
