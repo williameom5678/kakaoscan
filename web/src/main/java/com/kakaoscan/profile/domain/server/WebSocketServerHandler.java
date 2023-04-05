@@ -74,36 +74,41 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
         clientsRemoteAddress.remove(session);
     }
 
+    private boolean isPhoneNumber(String receive) {
+        return isNumeric(receive) && receive.length() == 11;
+    }
+
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         try {
 
             String receive = message.getPayload();
             if (receive.length() == 0) {
-                return;
+                throw new IllegalArgumentException("empty receive message");
             }
 
             UserDTO user = getUser(session);
             if (user == null) {
                 throw new InvalidAccess(MessageSendType.USER_NOT_FOUND.getMessage());
             }
+
             if (Role.GUEST.equals(user.getRole()) || user.getRole() == null) {
                 throw new InvalidAccess(MessageSendType.USER_NO_PERMISSION.getMessage());
             }
 
             ClientQueue clientQueue = BridgeInstance.getClients().get(session.getId());
             if (clientQueue == null) {
-                return;
+                throw new NullPointerException("null client queue");
             }
+
             if (clientQueue.getLastSendTick() != 0 && System.currentTimeMillis() > clientQueue.getLastSendTick()) {
                 throw new InvalidAccess(MessageSendType.REQUEST_TIME_OUT.getMessage());
             }
 
             // receive phone number
-            if (isNumeric(receive) && receive.length() == 11) {
+            if (isPhoneNumber(receive)) {
 
                 if (!addedNumberService.isExistsPhoneNumberHash(receive)) {
-
                     // remoteAddress 같은 계정 사용 횟수 동기화
                     userRequestService.syncUserUseCount(getRemoteAddress(session), LocalDate.now());
 
@@ -144,15 +149,14 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                     // check connected
                     clientQueue = BridgeInstance.getClients().get(session.getId());
                     if (clientQueue.isFail()) {
-                        throw new InvalidAccess(String.format(MessageSendType.SERVER_INSTANCE_NOT_RUN.getMessage()));
+                        throw new InvalidAccess(MessageSendType.SERVER_INSTANCE_NOT_RUN.getMessage());
                     }
 
                     // time out
-                    if (clientQueue.getLastReceivedTick() != 0) {
-                        if (System.currentTimeMillis() > clientQueue.getLastReceivedTick()) {
-                            throw new InvalidAccess(String.format(MessageSendType.REQUEST_TIME_OUT.getMessage()));
-                        }
-                    } else {
+                    if (clientQueue.getLastReceivedTick() != 0 && System.currentTimeMillis() > clientQueue.getLastReceivedTick()) {
+                        throw new InvalidAccess(MessageSendType.REQUEST_TIME_OUT.getMessage());
+
+                    } else if (clientQueue.getLastReceivedTick() == 0) {
                         clientQueue.setLastReceivedTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
                         BridgeInstance.getClients().put(session.getId(), clientQueue);
                     }
@@ -165,6 +169,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                     viewMessage = MessageSendType.TURN_LOCAL.getMessage();
 
                     ClientQueue queue = BridgeInstance.getClients().get(session.getId());
+
                     // check server response
                     if (queue.getResponse().length() > 0) {
                         viewMessage = queue.getResponse();
