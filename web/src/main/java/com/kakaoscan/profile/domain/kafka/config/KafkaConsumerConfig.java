@@ -28,7 +28,7 @@ public class KafkaConsumerConfig {
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<KafkaEventType, Map<String, Object>>> kafkaListenerContainerFactory(){
         ConcurrentKafkaListenerContainerFactory<KafkaEventType, Map<String, Object>> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(2); // consumer thread count
+        factory.setConcurrency(1); // consumer thread count
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE); // 수동 커밋 사용
 
         return factory;
