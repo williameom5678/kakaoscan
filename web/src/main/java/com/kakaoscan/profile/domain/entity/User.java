@@ -47,6 +47,9 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserHistory> historyList;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<UserLog> logList;
+
     public void setRole(Role role) {
         this.role = role;
     }
