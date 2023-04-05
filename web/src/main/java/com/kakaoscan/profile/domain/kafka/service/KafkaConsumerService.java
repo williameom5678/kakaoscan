@@ -2,8 +2,9 @@ package com.kakaoscan.profile.domain.kafka.service;
 
 import com.kakaoscan.profile.domain.enums.KafkaEventType;
 import com.kakaoscan.profile.domain.kafka.config.KafkaProperties;
-import com.kakaoscan.profile.domain.kafka.event.KafkaScanAfterEvent;
 import com.kakaoscan.profile.domain.kafka.event.KafkaEvent;
+import com.kakaoscan.profile.domain.kafka.event.KafkaRecordLogEvent;
+import com.kakaoscan.profile.domain.kafka.event.KafkaScanAfterEvent;
 import com.kakaoscan.profile.domain.kafka.event.KafkaSendMailEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -27,7 +28,7 @@ import java.util.Map;
 public class KafkaConsumerService {
     private final ApplicationEventPublisher eventPublisher;
 
-    @KafkaListener(topics = {KafkaProperties.TOPIC_EVENT}, groupId = KafkaProperties.GROUP_EVENT)
+    @KafkaListener(topics = {KafkaProperties.TOPIC_EVENT}, groupId = KafkaProperties.GROUP_EVENT, containerFactory = "kafkaListenerContainerFactory")
     public void onMessage(ConsumerRecord<KafkaEventType, Map<String, Object>> record, Acknowledgment ack) {
         try {
 
@@ -43,6 +44,11 @@ public class KafkaConsumerService {
                 case SEND_MAIL_EVENT:
                     KafkaEvent kafkaSendMailEvent = new KafkaSendMailEvent(map);
                     eventPublisher.publishEvent(kafkaSendMailEvent);
+                    break;
+
+                case RECORD_LOG_EVENT:
+                    KafkaEvent kafkaRecordLogEvent = new KafkaRecordLogEvent(map);
+                    eventPublisher.publishEvent(kafkaRecordLogEvent);
                     break;
 
                 default:

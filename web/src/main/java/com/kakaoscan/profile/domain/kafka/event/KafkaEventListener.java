@@ -1,5 +1,9 @@
 package com.kakaoscan.profile.domain.kafka.event;
 
+import com.kakaoscan.profile.domain.batch.config.BatchConfig;
+import com.kakaoscan.profile.domain.batch.runner.JobRunner;
+import com.kakaoscan.profile.domain.batch.userlog.UserLogQueue;
+import com.kakaoscan.profile.domain.entity.UserLog;
 import com.kakaoscan.profile.domain.model.EmailMessage;
 import com.kakaoscan.profile.domain.model.ScanResult;
 import com.kakaoscan.profile.domain.service.AddedNumberService;
@@ -22,6 +26,8 @@ public class KafkaEventListener {
     private final AddedNumberService addedNumberService;
 
     private final EmailService emailService;
+
+    private final JobRunner jobRunner;
 
     @Async
     @EventListener
@@ -54,6 +60,28 @@ public class KafkaEventListener {
             log.info("send mail : {}", event.getEmail());
         } catch (Exception e){
             log.error("send mail event error : {}", e.getMessage(), e);
+        }
+    }
+
+    @EventListener
+    public void onRecordLogEvent(KafkaRecordLogEvent event) {
+        try {
+            UserLog userLog = UserLog.builder()
+                    .email(event.getEmail())
+                    .json(event.getJson())
+                    .build();
+            UserLogQueue.addUserLog(userLog);
+
+            if (UserLogQueue.getLogList().size() >= BatchConfig.BATCH_SIZE) {
+                try {
+                    jobRunner.run();
+                }catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+
+        } catch (Exception e){
+            log.error("record log event error : {}", e.getMessage(), e);
         }
     }
 
