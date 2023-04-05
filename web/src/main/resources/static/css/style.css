@@ -10,7 +10,7 @@
     font-size: 22px;
     font-weight: 700;
     box-sizing: border-box;
-    color: white;
+    /*color: white;*/
     letter-spacing: 1px;
 }
 .container_search .search {
@@ -251,4 +251,12 @@ table tr {
 
 table tr:hover, table tr:active {
     background-color: #f9f9f9;
+}
+
+.text-disabled {
+    color: #757575;
+}
+
+.text-enabled {
+    color: white;
 }
