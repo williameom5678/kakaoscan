@@ -7,7 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum KafkaEventType {
     SCAN_AFTER_EVENT("SCAN_AFTER_EVENT"),
-    SEND_MAIL_EVENT("SEND_MAIL_EVENT");
+    SEND_MAIL_EVENT("SEND_MAIL_EVENT"),
+    RECORD_LOG_EVENT("RECORD_LOG_EVENT");
 
     private final String value;
 }
