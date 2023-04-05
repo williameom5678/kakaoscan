@@ -1,5 +1,9 @@
 package com.kakaoscan.profile.global.security.handler;
 
+import com.kakaoscan.profile.domain.dto.UserLogDTO;
+import com.kakaoscan.profile.domain.enums.KafkaEventType;
+import com.kakaoscan.profile.domain.enums.LogType;
+import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.domain.service.UserRequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -13,6 +17,8 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.kakaoscan.profile.utils.GenerateUtils.StrToMD5;
 import static com.kakaoscan.profile.utils.HttpRequestUtils.getRemoteAddress;
@@ -26,19 +32,28 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final UserRequestService userRequestService;
 
+    private final KafkaProducerService producerService;
+
     @Override
     public void onAuthenticationSuccess(final HttpServletRequest request, final HttpServletResponse response, final Authentication authentication) throws IOException {
         DefaultOAuth2User oauth2User = (DefaultOAuth2User) authentication.getPrincipal();
         String email = oauth2User.getAttribute("email");
-        String remoteAddress = StrToMD5(getRemoteAddress(request), "");
+        String remoteAddress = getRemoteAddress(request);
 
         // 오늘 사용 데이터가 없으면 0으로 초기화
         if (userRequestService.getTodayUseCount(email) == -1) {
-            userRequestService.initUseCount(email, remoteAddress);
+            userRequestService.initUseCount(email, StrToMD5(remoteAddress, ""));
         }
 
-        setDefaultTargetUrl("/");
+        Map<String, Object> map = new HashMap<>();
+        map.put("email", email);
+        map.put("json", UserLogDTO.builder()
+                .type(LogType.LOGIN.name())
+                .remoteAddress(remoteAddress)
+                .build());
+        producerService.send(KafkaEventType.RECORD_LOG_EVENT, map);
 
+        setDefaultTargetUrl("/");
         redirectStrategy.sendRedirect(request, response, getDefaultTargetUrl());
     }
 }
