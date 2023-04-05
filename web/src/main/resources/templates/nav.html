@@ -27,23 +27,23 @@
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                         <li>
                             <div sec:authorize="hasRole('ROLE_GUEST')">
-                                <a class="dropdown-item" href="/req-unlock"><i class="fas fa-unlock me-2"></i><b>사용 권한 신청</b></a>
+                                <a class="dropdown-item" href="/req-unlock" onclick="_post('/api/log', {'url': '/req-unlock'});"><i class="fas fa-unlock me-2"></i><b>사용 권한 신청</b></a>
                             </div>
                             <div sec:authorize="hasRole('ROLE_ADMIN')">
                                 <a class="dropdown-item" href="/admin"><i class="fas fa-user-cog me-2"></i><b>유저 관리</b></a>
                             </div>
-                            <a class="dropdown-item" href="/history"><i class="fas fa-history me-2"></i>히스토리</a>
+                            <a class="dropdown-item" href="/history" onclick="_post('/api/log', {'url': '/history'});"><i class="fas fa-history me-2"></i>히스토리</a>
                             <a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i></i>로그아웃</a>
                         </li>
                         <li><hr class="dropdown-divider" /></li>
                         <li>
-                            <a class="dropdown-item" th:href="${lGithub}" target="_blank"><i class="fab fa-github me-2"></i>Github</a>
+                            <a class="dropdown-item" th:href="${lGithub}" target="_blank" onclick="_post('/api/log', {'url': '/github'});"><i class="fab fa-github me-2"></i>Github</a>
                         </li>
 <!--                        <li>-->
 <!--                            <a class="dropdown-item" th:href="${lSns}" target="_blank"><i class="fab fa-instagram me-2"></i></i>Instagram</a>-->
 <!--                        </li>-->
                         <li>
-                            <a class="dropdown-item" th:href="${lBlog}" target="_blank"><i class="fas fa-pen me-2"></i></i>Blog</a>
+                            <a class="dropdown-item" th:href="${lBlog}" target="_blank" onclick="_post('/api/log', {'url': '/blog'});"><i class="fas fa-pen me-2"></i></i>Blog</a>
                         </li>
                     </ul>
                 </li>

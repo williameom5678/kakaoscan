@@ -211,8 +211,13 @@
                 }
             }
 
-            modalTitle.text(decodeString(name) + ' | ' + phone);
+            var title = decodeString(name) + ' | ' + phone;
+            modalTitle.text(title);
             modalInstance.show();
+
+            _post('/api/log', {
+                'view' : title
+            })
         });
 
         function copyToClipboard(text) {

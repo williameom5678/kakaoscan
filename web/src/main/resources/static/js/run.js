@@ -135,6 +135,10 @@ function init(server) {
 
                         moveTop.removeClass('hide');
 
+                        number.prop('disabled', false);
+                        number.removeClass('text-disabled');
+                        number.addClass('text-enabled');
+
                         socket.close();
                     }
                 } catch (error) {
@@ -156,6 +160,10 @@ function init(server) {
             return;
         }
 
+        _post('/api/log', {
+            'search' : number.val()
+        })
+
         let res = _get('/api/cache?phoneNumber=' + number.val());
         // console.log(res);
         if (res === false) {
@@ -175,6 +183,9 @@ function init(server) {
             socket.send(number.val());
         }
 
+        number.attr('disabled', true);
+        number.addClass('text-disabled');
+        number.removeClass('text-enabled');
         searchIcon.addClass('hide');
         spinner.removeClass('hide');
         results.addClass('hide');
