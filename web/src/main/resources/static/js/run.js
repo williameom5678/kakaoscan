@@ -135,10 +135,6 @@ function init(server) {
 
                         moveTop.removeClass('hide');
 
-                        number.prop('disabled', false);
-                        number.removeClass('text-disabled');
-                        number.addClass('text-enabled');
-
                         socket.close();
                     }
                 } catch (error) {
@@ -150,6 +146,7 @@ function init(server) {
         }
     }
 
+    var timer = null;
     number.on("keydown", function(event) {
         if(event.which !== 13) {
             return;
@@ -160,16 +157,20 @@ function init(server) {
             return;
         }
 
-        _post('/api/log', {
-            'search' : number.val()
-        })
-
-        let res = _get('/api/cache?phoneNumber=' + number.val());
-        // console.log(res);
-        if (res === false) {
-            alert('유효하지 않은 전화번호입니다');
-            return;
+        if (timer !== null) {
+            clearTimeout(timer);
         }
+        timer = setTimeout(function() {
+            _post('/api/log', {
+                'search': number.val()
+            })
+        }, 500);
+
+        // let res = _get('/api/cache?phoneNumber=' + number.val());
+        // if (res === false) {
+        //     alert('유효하지 않은 전화번호입니다');
+        //     return;
+        // }
         // if (res.hasOwnProperty('responseJSON')) {
         //     alert(res.responseJSON.message);
         //     return;
@@ -183,9 +184,6 @@ function init(server) {
             socket.send(number.val());
         }
 
-        number.attr('disabled', true);
-        number.addClass('text-disabled');
-        number.removeClass('text-enabled');
         searchIcon.addClass('hide');
         spinner.removeClass('hide');
         results.addClass('hide');
