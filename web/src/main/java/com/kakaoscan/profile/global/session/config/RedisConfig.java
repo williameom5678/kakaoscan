@@ -1,6 +1,9 @@
 package com.kakaoscan.profile.global.session.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kakaoscan.profile.domain.dto.UserDTO;
+import com.kakaoscan.profile.domain.entity.UserLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -26,6 +29,8 @@ import java.time.Duration;
 @Configuration
 @EnableCaching
 public class RedisConfig {
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     @Value("${spring.redis.host}")
     private String redisHost;
 
@@ -63,6 +68,24 @@ public class RedisConfig {
         template.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(UserDTO.class));
         return template;
     }
+
+    @Bean
+    public RedisTemplate<String, UserLog> userLogRedisTemplate() {
+        RedisTemplate<String, UserLog> template = new RedisTemplate<>();
+        template.setConnectionFactory(redisConnectionFactory());
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+
+        Jackson2JsonRedisSerializer<UserLog> userLogSerializer = new Jackson2JsonRedisSerializer<>(UserLog.class);
+        template.setValueSerializer(userLogSerializer);
+        template.setHashValueSerializer(userLogSerializer);
+
+        mapper.findAndRegisterModules();
+        mapper.registerModule(new JavaTimeModule());
+        userLogSerializer.setObjectMapper(mapper);
+        return template;
+    }
+
 
     @Bean
     public CacheManager cacheManager() {
