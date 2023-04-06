@@ -205,7 +205,9 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
         // 동일한 아이피 접속 체크
         for (Map.Entry<WebSocketSession, String> ss : clientsRemoteAddress.entrySet()) {
             if (remoteAddress.equals(ss.getValue())) {
-                ss.getKey().sendMessage(new TextMessage(MessageSendType.CONNECT_CLOSE_IP.getMessage()));
+                synchronized (ss.getKey()) {
+                    ss.getKey().sendMessage(new TextMessage(MessageSendType.CONNECT_CLOSE_IP.getMessage()));
+                }
                 removeSessionHash(ss.getKey());
             }
         }
