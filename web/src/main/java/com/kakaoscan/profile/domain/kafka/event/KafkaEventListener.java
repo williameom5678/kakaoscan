@@ -29,6 +29,8 @@ public class KafkaEventListener {
 
     private final JobRunner jobRunner;
 
+    private final UserLogQueue userLogQueue;
+
     @Async
     @EventListener
     public void onScanAfterEvent(KafkaScanAfterEvent event) {
@@ -70,9 +72,9 @@ public class KafkaEventListener {
                     .email(event.getEmail())
                     .json(event.getJson())
                     .build();
-            UserLogQueue.addUserLog(userLog);
+            userLogQueue.push(userLog);
 
-            if (UserLogQueue.getLogList().size() >= BatchConfig.BATCH_SIZE) {
+            if (userLogQueue.size() >= BatchConfig.BATCH_SIZE) {
                 try {
                     jobRunner.run();
                 }catch (Exception e) {
