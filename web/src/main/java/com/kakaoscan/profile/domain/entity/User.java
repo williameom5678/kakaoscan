@@ -9,6 +9,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Entity(name = "tb_user")
 @NoArgsConstructor
@@ -45,7 +46,7 @@ public class User implements Serializable {
     private UserRequest request;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<UserHistory> historyList;
+    private Set<UserHistory> historyList;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserLog> logList;

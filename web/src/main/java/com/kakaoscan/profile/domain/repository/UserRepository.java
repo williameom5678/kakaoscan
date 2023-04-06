@@ -14,6 +14,6 @@ public interface UserRepository extends JpaRepository<User, String> {
     @EntityGraph(attributePaths = "historyList")
     Optional<User> findByEmail(String email);
 
-    @EntityGraph(attributePaths = {"requestUnlock", "request", "historyList", "logsList"})
+    @EntityGraph(attributePaths = {"requestUnlock", "request", "logList"})
     List<User> findAll(Sort sort);
 }
