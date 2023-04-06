@@ -1,8 +1,12 @@
 package com.kakaoscan.profile.global.oauth.service;
 
 import com.kakaoscan.profile.domain.dto.UserDTO;
+import com.kakaoscan.profile.domain.dto.UserLogDTO;
 import com.kakaoscan.profile.domain.entity.User;
+import com.kakaoscan.profile.domain.enums.KafkaEventType;
+import com.kakaoscan.profile.domain.enums.LogType;
 import com.kakaoscan.profile.domain.enums.Role;
+import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.domain.repository.UserRepository;
 import com.kakaoscan.profile.global.oauth.OAuthAttributes;
 import com.kakaoscan.profile.global.session.instance.SessionManager;
@@ -18,13 +22,17 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_FORMAT;
 import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_KEY;
 import static com.kakaoscan.profile.utils.GenerateUtils.StrToMD5;
+import static com.kakaoscan.profile.utils.HttpRequestUtils.getRemoteAddress;
 
 @RequiredArgsConstructor
 @Service
@@ -34,9 +42,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private String saltKey;
 
     private final HttpServletResponse response;
+    private final HttpServletRequest request;
 
     private final UserRepository userRepository;
     private final SessionManager sessionManager;
+
+    private final KafkaProducerService producerService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -59,10 +70,20 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         Optional<User> userOptional = userRepository.findById(attributes.getEmail());
         User user = userOptional.orElse(User.builder()
-                        .email(attributes.getEmail())
-                        .role(Role.GUEST)
-                        .build());
-        userRepository.save(user);
+                .email(attributes.getEmail())
+                .role(Role.GUEST)
+                .build());
+        if (userOptional.isEmpty()) {
+            userRepository.save(user);
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("email", attributes.getEmail());
+            map.put("json", UserLogDTO.builder()
+                    .type(LogType.REGISTER.name())
+                    .remoteAddress(getRemoteAddress(request))
+                    .build());
+            producerService.send(KafkaEventType.RECORD_LOG_EVENT, map);
+        }
 
         String emailHash = StrToMD5(user.getEmail(), saltKey);
         attributes.setRole(user.getRole());
