@@ -2,7 +2,7 @@ package com.kakaoscan.profile.domain.kafka.event;
 
 import com.kakaoscan.profile.domain.batch.config.BatchConfig;
 import com.kakaoscan.profile.domain.batch.runner.JobRunner;
-import com.kakaoscan.profile.domain.batch.userlog.UserLogQueue;
+import com.kakaoscan.profile.domain.batch.userlog.UserLogQueueService;
 import com.kakaoscan.profile.domain.entity.UserLog;
 import com.kakaoscan.profile.domain.model.EmailMessage;
 import com.kakaoscan.profile.domain.model.ScanResult;
@@ -29,7 +29,7 @@ public class KafkaEventListener {
 
     private final JobRunner jobRunner;
 
-    private final UserLogQueue userLogQueue;
+    private final UserLogQueueService userLogQueue;
 
     @Async
     @EventListener

@@ -2,12 +2,14 @@ package com.kakaoscan.profile.domain.batch.userlog;
 
 import com.kakaoscan.profile.domain.entity.UserLog;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+@Profile("prod")
 @Component
 @RequiredArgsConstructor
-public class UserLogQueue implements UserLogQueueService {
+public class UserLogQueueRedis implements UserLogQueueService {
     private static final String USER_LOG_LIST_KEY = "UserLogList";
 
     private final RedisTemplate<String, UserLog> redisTemplate;
