@@ -621,10 +621,17 @@ begin
         SharableMemory.SharableInstance.UpdateMemory;
         SharableMemory.SharableInstance.gSaveStep:= 1;
         SharableMemory.SharableInstance.WriteMemory;
-        Sleep(1000);
+        Sleep(500);
         for var i := 1 to 4 do
           Click(ViewFriendHandle, 150, 390);
       end;
+
+      Sleep(500);
+      Source:= SharableMemory.SharableInstance.GetFriendCustomName;
+      ViewProfileHandle:= 0;
+      EnumWindows(@GetViewProfileHandleCallback, DWORD(Source));
+
+      SendMessage(ViewProfileHandle, WM_CLOSE, 0, 0);
 
     finally
       LeaveCriticalSection(CriticalSection);
