@@ -2,6 +2,9 @@ package com.kakaoscan.profile.utils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -14,7 +17,18 @@ public class HttpRequestUtils {
         if (ra.contains(",")) {
             ra = ra.split(",")[0];
         }
-        return ra;
+        try {
+            InetAddress inetAddress = InetAddress.getByName(ra);
+            if (inetAddress instanceof Inet4Address) {
+                return ra;
+            } else {
+                byte[] bytes = inetAddress.getAddress();
+                InetAddress v4Address = Inet4Address.getByAddress(bytes);
+                return v4Address.getHostAddress();
+            }
+        } catch (UnknownHostException e) {
+            return ra;
+        }
     }
 
     public static Optional<Cookie> getCookie(HttpServletRequest request) {
