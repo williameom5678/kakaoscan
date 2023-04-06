@@ -12,6 +12,7 @@ import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.domain.model.UseCount;
 import com.kakaoscan.profile.domain.service.AccessLimitService;
 import com.kakaoscan.profile.domain.service.AddedNumberService;
+import com.kakaoscan.profile.domain.service.CacheService;
 import com.kakaoscan.profile.domain.service.UserRequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -52,6 +53,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
     private final UserRequestService userRequestService;
     private final AddedNumberService addedNumberService;
     private final KafkaProducerService producerService;
+    private final CacheService cacheService;
 
     public String getRemoteAddress(WebSocketSession session) {
         Map<String, Object> map = session.getAttributes();
@@ -106,7 +108,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
             }
 
             // receive phone number
-            if (isPhoneNumber(receive)) {
+            if (isPhoneNumber(receive) && clientQueue.getRequestTick() == Long.MAX_VALUE) {
 
                 if (!addedNumberService.isExistsPhoneNumberHash(receive)) {
                     // remoteAddress 같은 계정 사용 횟수 동기화
@@ -124,10 +126,12 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                     }
                 }
 
-                // put turn
-                if (clientQueue.getRequestTick() == Long.MAX_VALUE) {
-                    BridgeInstance.getClients().put(session.getId(), new ClientQueue(System.currentTimeMillis(), 0, System.currentTimeMillis() + REQUEST_TIMEOUT_TICK, receive, "", false, false));
+                if (!cacheService.isEnabledPhoneNumber(receive)) {
+                    throw new InvalidAccess(MessageSendType.INVALID_NUMBER.getMessage());
                 }
+
+                // put turn
+                BridgeInstance.getClients().put(session.getId(), new ClientQueue(System.currentTimeMillis(), 0, System.currentTimeMillis() + REQUEST_TIMEOUT_TICK, receive, "", false, false));
 
             } else if (MessageSendType.HEARTBEAT.getMessage().equals(receive)) {
                 // update
@@ -205,10 +209,8 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
         // 동일한 아이피 접속 체크
         for (Map.Entry<WebSocketSession, String> ss : clientsRemoteAddress.entrySet()) {
             if (remoteAddress.equals(ss.getValue())) {
-                synchronized (ss.getKey()) {
-                    ss.getKey().sendMessage(new TextMessage(MessageSendType.CONNECT_CLOSE_IP.getMessage()));
-                }
                 removeSessionHash(ss.getKey());
+                ss.getKey().sendMessage(new TextMessage(MessageSendType.CONNECT_CLOSE_IP.getMessage()));
             }
         }
 
