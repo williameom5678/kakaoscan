@@ -177,7 +177,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                     // check server response
                     if (queue.getResponse().length() > 0) {
                         viewMessage = queue.getResponse();
-                        removeSessionHash(session);
+                        BridgeInstance.getClients().put(session.getId(), new ClientQueue(Long.MAX_VALUE, 0, 0, "", "", false, false));
 
                         Map<String, Object> map = new HashMap<>();
                         map.put("email", user.getEmail());
@@ -210,7 +210,9 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
         for (Map.Entry<WebSocketSession, String> ss : clientsRemoteAddress.entrySet()) {
             if (remoteAddress.equals(ss.getValue())) {
                 removeSessionHash(ss.getKey());
-                ss.getKey().sendMessage(new TextMessage(MessageSendType.CONNECT_CLOSE_IP.getMessage()));
+                synchronized (this) {
+                    ss.getKey().sendMessage(new TextMessage(MessageSendType.CONNECT_CLOSE_IP.getMessage()));
+                }
             }
         }
 
