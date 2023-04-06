@@ -134,6 +134,10 @@ function init(server) {
                         render(tab3, res, 'VideoUrl', '.mp4', 'ratio ratio-16x9 b-4');
 
                         moveTop.removeClass('hide');
+
+                        $('html, body').animate({
+                            scrollTop: $('#result').offset().top
+                        }, 'fast');
                     }
                 } catch (error) {
                     console.log(error);
