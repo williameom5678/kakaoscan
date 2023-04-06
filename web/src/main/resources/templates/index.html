@@ -13,7 +13,7 @@
                 <span class="search_ico">
                     <i class="fas fa-search fa-lg"></i>
                 </span>
-                <input type="text" id="number" class="text-enabled" th:value="${phoneNumber}" placeholder="전화번호 -없이 입력" maxlength="11" onKeyup="this.value=this.value.replace(/[^-0-9]/g,'');">
+                <input type="text" id="number" class="text-enabled" th:value="${phoneNumber}" placeholder="전화번호 -없이 입력" maxlength="11" autocomplete="off" onKeyup="this.value=this.value.replace(/[^-0-9]/g,'');">
             </div>
         </div>
 
