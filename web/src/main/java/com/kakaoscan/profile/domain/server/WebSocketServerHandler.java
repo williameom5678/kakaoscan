@@ -206,15 +206,15 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
             return;
         }
 
-        // 동일한 아이피 접속 체크
-        for (Map.Entry<WebSocketSession, String> ss : clientsRemoteAddress.entrySet()) {
-            if (remoteAddress.equals(ss.getValue())) {
-                removeSessionHash(ss.getKey());
-                synchronized (this) {
-                    ss.getKey().sendMessage(new TextMessage(MessageSendType.CONNECT_CLOSE_IP.getMessage()));
-                }
-            }
-        }
+//        // 동일한 아이피 접속 체크
+//        for (Map.Entry<WebSocketSession, String> ss : clientsRemoteAddress.entrySet()) {
+//            if (remoteAddress.equals(ss.getValue())) {
+//                removeSessionHash(ss.getKey());
+//                synchronized (this) {
+//                    ss.getKey().sendMessage(new TextMessage(MessageSendType.CONNECT_CLOSE_IP.getMessage()));
+//                }
+//            }
+//        }
 
         BridgeInstance.getClients().put(session.getId(), new ClientQueue(Long.MAX_VALUE, 0, 0, "", "", false, false));
 
