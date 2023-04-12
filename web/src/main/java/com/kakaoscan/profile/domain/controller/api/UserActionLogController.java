@@ -37,7 +37,7 @@ public class UserActionLogController extends ApiBaseController {
         Map<String, Object> map = new HashMap<>();
         map.put("email", attributes.getEmail());
         map.put("json", UserLogDTO.builder()
-                .type(LogType.ACTION.name())
+                .type(isBlank(userLogDTO.getSearch()) ? LogType.ACTION.name() : LogType.SEARCH.name())
                 .url(isBlank(userLogDTO.getUrl()) ? null : userLogDTO.getUrl())
                 .search(isBlank(userLogDTO.getSearch()) ? null : userLogDTO.getSearch())
                 .view(isBlank(userLogDTO.getView()) ? null : userLogDTO.getView())
