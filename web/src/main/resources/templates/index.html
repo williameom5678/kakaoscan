@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
+    <script>
+        (function() {
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+            }
+        })();
+    </script>
     <th:block th:include="head :: head"></th:block>
 </head>
 <body>
