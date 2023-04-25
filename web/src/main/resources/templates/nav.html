@@ -5,7 +5,7 @@
             <div th:if="${#strings.isEmpty(user)}">
                 <li class="nav-item d-flex align-items-center">
                     <button type="button" class="btn btn-link px-3 me-2" style="padding-bottom: 10px;">
-                        <a href="/oauth2/authorization/google" class="text-primary"><i class="fab fa-google"></i> 로그인이 필요한 서비스입니다.</a>
+                        <a href="/oauth2/authorization/google" class="text-primary"><i class="fab fa-google"></i> 로그인이 필요한 서비스입니다</a>
                     </button>
                 </li>
             </div>
@@ -35,16 +35,13 @@
                             <a class="dropdown-item" href="/history" onclick="_post('/api/log', {'url': '/history'});"><i class="fas fa-history me-2"></i>히스토리</a>
                             <a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i></i>로그아웃</a>
                         </li>
-                        <li><hr class="dropdown-divider" /></li>
-                        <li>
-                            <a class="dropdown-item" th:href="${lGithub}" target="_blank" onclick="_post('/api/log', {'url': '/github'});"><i class="fab fa-github me-2"></i>Github</a>
-                        </li>
+<!--                        <li><hr class="dropdown-divider" /></li>-->
 <!--                        <li>-->
-<!--                            <a class="dropdown-item" th:href="${lSns}" target="_blank"><i class="fab fa-instagram me-2"></i></i>Instagram</a>-->
+<!--                            <a class="dropdown-item" th:href="${lGithub}" target="_blank" onclick="_post('/api/log', {'url': '/github'});"><i class="fab fa-github me-2"></i>Github</a>-->
 <!--                        </li>-->
-                        <li>
-                            <a class="dropdown-item" th:href="${lBlog}" target="_blank" onclick="_post('/api/log', {'url': '/blog'});"><i class="fas fa-pen me-2"></i></i>Blog</a>
-                        </li>
+<!--                        <li>-->
+<!--                            <a class="dropdown-item" th:href="${lBlog}" target="_blank" onclick="_post('/api/log', {'url': '/blog'});"><i class="fas fa-pen me-2"></i></i>Blog</a>-->
+<!--                        </li>-->
                     </ul>
                 </li>
             </th:block>

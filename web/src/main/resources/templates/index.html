@@ -177,5 +177,10 @@
         }
     </script>
 </body>
-
+<footer id="footer" class="text-center fixed-bottom">
+    <div class="container p-4 mb-3">
+        <a th:href="${lGithub}" class="text-grayish m-3" target="_blank" onclick="_post('/api/log', {'url': '/github'});">Github</a>
+        <a th:href="${lBlog}" class="text-grayish m-3" target="_blank" onclick="_post('/api/log', {'url': '/blog'});">Blog</a>
+    </div>
+</footer>
 </html>

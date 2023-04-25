@@ -43,6 +43,7 @@ function init(server) {
     const previewProfile = $('#preview_profile');
     const previewProfileImg = $('#preview_profile img');
     const helpInfo = $('#help_info');
+    const footer = $('#footer');
 
     let socket;
     function connect() {
@@ -134,6 +135,7 @@ function init(server) {
                         render(tab3, res, 'VideoUrl', '.mp4', 'ratio ratio-16x9 b-4');
 
                         moveTop.removeClass('hide');
+                        footer.addClass('hide');
 
                         $('html, body').animate({
                             scrollTop: $('#result').offset().top
@@ -202,6 +204,7 @@ function init(server) {
         currentArtistName.text('');
         currentMusicAlbumUrl.attr('src', '');
         previewProfileImg.attr('src', 'img/empty_profile.png');
+        footer.removeClass('hide');
 
         tick = performance.now();
         timeOutTick = 0;
