@@ -207,17 +207,18 @@
                     render(tab1, res, 'ImageUrl', '.mp4.jpg', 'col-lg-auto b-4');
                     render(tab2, res, 'BgImageUrl', '.mp4.jpg', 'col-lg-auto b-4');
                     render(tab3, res, 'VideoUrl', '.mp4', 'ratio ratio-16x9 b-4');
+
+                    var title = decodeString(name) + ' | ' + phone;
+                    modalTitle.text(title);
+                    modalInstance.show();
+
+                    _post('/api/log', {
+                        'view' : title
+                    })
+
                     break;
                 }
             }
-
-            var title = decodeString(name) + ' | ' + phone;
-            modalTitle.text(title);
-            modalInstance.show();
-
-            _post('/api/log', {
-                'view' : title
-            })
         });
 
         function copyToClipboard(text) {
