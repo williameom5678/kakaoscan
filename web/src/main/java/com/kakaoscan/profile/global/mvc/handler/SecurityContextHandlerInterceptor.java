@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_FORMAT;
+import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_KEY;
 import static com.kakaoscan.profile.utils.HttpRequestUtils.getCookie;
 
 @Component
@@ -37,6 +38,11 @@ public class SecurityContextHandlerInterceptor implements HandlerInterceptor {
                 Object userObj = sessionManager.getValue(String.format(SESSION_FORMAT, optionalCookie.get().getValue()));
                 if (userObj != null) {
                     sessionManager.deleteValue(String.format(SESSION_FORMAT, optionalCookie.get().getValue()));
+
+                    Cookie cookie = new Cookie(SESSION_KEY, "");
+                    cookie.setPath("/");
+                    cookie.setMaxAge(0);
+                    response.addCookie(cookie);
                 }
             }
         }
