@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, System.StrUtils, System.Types, KakaoUtils, MemAPI, SharableMemory, Vcl.Clipbrd, MD5,
-  IdHttp, IdURI, IdSSL, IdSSLOpenSSL, uKey, HttpUtils, ActiveX, TlHelp32;
+  IdHttp, IdURI, IdSSL, IdSSLOpenSSL, uKey, HttpUtils, ActiveX, TlHelp32, Unlink;
 
 var
   Kakao: TKakao;
@@ -310,6 +310,7 @@ begin
   // 후킹 작업
   if Kakao.IsInjectedKakaoTalk then
   begin
+    HideModule(HInstance);
 
 //    Allocconsole;
 
@@ -353,7 +354,7 @@ begin
 //    CallHook(Kakao.HookBlockCount, @GetBlockCount);
 
     // 친구 동기화 60초 제한 해제
-    JumpHook(Kakao.HookSyncFriend, Kakao.HookSyncFriend + $1A3);
+//    JumpHook(Kakao.HookSyncFriend, Kakao.HookSyncFriend + $1A3);
 
   end;
 end;
