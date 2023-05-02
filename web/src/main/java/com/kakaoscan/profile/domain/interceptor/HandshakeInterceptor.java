@@ -15,7 +15,6 @@ import java.util.Map;
 
 import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_FORMAT;
 import static com.kakaoscan.profile.utils.GenerateUtils.StrToMD5;
-import static com.kakaoscan.profile.utils.HttpRequestUtils.getCookie;
 import static com.kakaoscan.profile.utils.HttpRequestUtils.getRemoteAddress;
 
 @Configuration
@@ -34,13 +33,11 @@ public class HandshakeInterceptor extends HttpSessionHandshakeInterceptor {
         String remoteAddress = StrToMD5(getRemoteAddress(httpRequest), "");
         attributes.put("remoteAddress", remoteAddress);
 
-        getCookie(((ServletServerHttpRequest) request).getServletRequest()).ifPresent(cookie -> {
-            Object userObj = sessionManager.getValue(String.format(SESSION_FORMAT,  cookie.getValue()));
-            if (userObj instanceof UserDTO) {
-                UserDTO user = (UserDTO) userObj;
-                attributes.put("user", user);
-            }
-        });
+        Object userObj = sessionManager.getValue(String.format(SESSION_FORMAT, httpRequest.getSession().getId()));
+        if (userObj instanceof UserDTO) {
+            UserDTO user = (UserDTO) userObj;
+            attributes.put("user", user);
+        }
 
         return super.beforeHandshake(request, response, wsHandler, attributes);
     }

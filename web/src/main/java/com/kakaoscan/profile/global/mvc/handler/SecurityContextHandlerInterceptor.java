@@ -7,14 +7,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_FORMAT;
-import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_KEY;
-import static com.kakaoscan.profile.utils.HttpRequestUtils.getCookie;
 
 @Component
 @RequiredArgsConstructor
@@ -33,18 +30,7 @@ public class SecurityContextHandlerInterceptor implements HandlerInterceptor {
                     .anyMatch(auth -> "ROLE_ANONYMOUS".equals(auth.getAuthority()))).orElse(false);
 
         if (isAnonymousUser) {
-            Optional<Cookie> optionalCookie = getCookie(request);
-            if (optionalCookie.isPresent()) {
-                Object userObj = sessionManager.getValue(String.format(SESSION_FORMAT, optionalCookie.get().getValue()));
-                if (userObj != null) {
-                    sessionManager.deleteValue(String.format(SESSION_FORMAT, optionalCookie.get().getValue()));
-
-                    Cookie cookie = new Cookie(SESSION_KEY, "");
-                    cookie.setPath("/");
-                    cookie.setMaxAge(0);
-                    response.addCookie(cookie);
-                }
-            }
+            sessionManager.deleteValue(String.format(SESSION_FORMAT, request.getSession().getId()));
         }
 
         return true;

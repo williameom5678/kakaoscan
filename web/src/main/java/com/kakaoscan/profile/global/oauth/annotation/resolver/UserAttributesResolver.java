@@ -15,7 +15,6 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import javax.servlet.http.HttpServletRequest;
 
 import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_FORMAT;
-import static com.kakaoscan.profile.utils.HttpRequestUtils.getCookie;
 
 @RequiredArgsConstructor
 @Component
@@ -38,11 +37,10 @@ public class UserAttributesResolver implements HandlerMethodArgumentResolver {
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
         try {
             assert request != null;
+            return sessionManager.getValue(String.format(SESSION_FORMAT, request.getSession().getId()));
         } catch (AssertionError e) {
             log.error("request instance null: {}", e.getMessage(), e);
         }
-        return getCookie(request)
-                .map(cookie -> sessionManager.getValue(String.format(SESSION_FORMAT, cookie.getValue())))
-                .orElse(null);
+        return null;
     }
 }

@@ -1,6 +1,5 @@
 package com.kakaoscan.profile.global.oauth.service;
 
-import com.kakaoscan.profile.domain.dto.UserDTO;
 import com.kakaoscan.profile.domain.dto.UserLogDTO;
 import com.kakaoscan.profile.domain.entity.User;
 import com.kakaoscan.profile.domain.enums.KafkaEventType;
@@ -9,7 +8,6 @@ import com.kakaoscan.profile.domain.enums.Role;
 import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.domain.repository.UserRepository;
 import com.kakaoscan.profile.global.oauth.OAuthAttributes;
-import com.kakaoscan.profile.global.session.instance.SessionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,17 +19,12 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_FORMAT;
-import static com.kakaoscan.profile.global.session.instance.SessionManager.SESSION_KEY;
-import static com.kakaoscan.profile.utils.GenerateUtils.StrToMD5;
 import static com.kakaoscan.profile.utils.HttpRequestUtils.getRemoteAddress;
 
 @RequiredArgsConstructor
@@ -41,11 +34,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     @Value("${md5.encryption.salt-key}")
     private String saltKey;
 
-    private final HttpServletResponse response;
     private final HttpServletRequest request;
 
     private final UserRepository userRepository;
-    private final SessionManager sessionManager;
 
     private final KafkaProducerService producerService;
 
@@ -85,16 +76,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             producerService.send(KafkaEventType.RECORD_LOG_EVENT, map);
         }
 
-        String emailHash = StrToMD5(user.getEmail(), saltKey);
-        attributes.setRole(user.getRole());
-        sessionManager.setValue(String.format(SESSION_FORMAT, emailHash), UserDTO.toDTO(attributes));
-
-        Cookie cookie = new Cookie(SESSION_KEY, emailHash);
-        cookie.setHttpOnly(true);
-//        cookie.setSecure(true);
-        cookie.setMaxAge(60 * 60); // 60분
-        cookie.setPath("/");
-        response.addCookie(cookie);
+//        attributes.setRole(user.getRole());
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority(
