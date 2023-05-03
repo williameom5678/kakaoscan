@@ -15,17 +15,17 @@ public class HttpSessionManager implements SessionManager {
     }
 
     @Override
-    public void setValue(String key, Object value) {
+    public void add(String key, Object value) {
         httpSession.setAttribute(key, value);
     }
 
     @Override
-    public Object getValue(String key) {
+    public Object get(String key) {
         return httpSession.getAttribute(key);
     }
 
     @Override
-    public void deleteValue(String key) {
+    public void delete(String key) {
         httpSession.removeAttribute(key);
     }
 }

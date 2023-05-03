@@ -37,7 +37,7 @@ public class UserAttributesResolver implements HandlerMethodArgumentResolver {
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
         try {
             assert request != null;
-            return sessionManager.getValue(String.format(SESSION_FORMAT, request.getSession().getId()));
+            return sessionManager.get(String.format(SESSION_FORMAT, request.getSession().getId()));
         } catch (AssertionError e) {
             log.error("request instance null: {}", e.getMessage(), e);
         }

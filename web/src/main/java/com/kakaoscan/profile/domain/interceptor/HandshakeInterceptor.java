@@ -33,7 +33,7 @@ public class HandshakeInterceptor extends HttpSessionHandshakeInterceptor {
         String remoteAddress = StrToMD5(getRemoteAddress(httpRequest), "");
         attributes.put("remoteAddress", remoteAddress);
 
-        Object userObj = sessionManager.getValue(String.format(SESSION_FORMAT, httpRequest.getSession().getId()));
+        Object userObj = sessionManager.get(String.format(SESSION_FORMAT, httpRequest.getSession().getId()));
         if (userObj instanceof UserDTO) {
             UserDTO user = (UserDTO) userObj;
             attributes.put("user", user);

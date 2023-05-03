@@ -29,7 +29,7 @@ public class CustomLogoutHandler implements LogoutHandler {
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        sessionManager.deleteValue(String.format(SESSION_FORMAT, request.getSession().getId()));
+        sessionManager.delete(String.format(SESSION_FORMAT, request.getSession().getId()));
 
         DefaultOAuth2User oauth2User = (DefaultOAuth2User) authentication.getPrincipal();
         if (oauth2User == null) {

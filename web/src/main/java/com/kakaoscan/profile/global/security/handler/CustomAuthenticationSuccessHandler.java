@@ -66,7 +66,7 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     .orElse(null);
             oa.setRole(role);
 
-            sessionManager.setValue(String.format(SESSION_FORMAT, request.getSession().getId()), UserDTO.toDTO(oa));
+            sessionManager.add(String.format(SESSION_FORMAT, request.getSession().getId()), UserDTO.toDTO(oa));
 
             String remoteAddress = getRemoteAddress(request);
             // 오늘 사용 데이터가 없으면 0으로 초기화

@@ -2,7 +2,7 @@ package com.kakaoscan.profile.global.session.instance;
 
 public interface SessionManager {
     public static final String SESSION_FORMAT = "user::%s";
-    void setValue(String key, Object value);
-    Object getValue(String key);
-    void deleteValue(String key);
+    void add(String key, Object value);
+    Object get(String key);
+    void delete(String key);
 }

@@ -19,7 +19,7 @@ public class RedisSessionManager implements SessionManager {
     }
 
     @Override
-    public void setValue(String key, Object value) {
+    public void add(String key, Object value) {
         if (value instanceof UserDTO) {
             redisTemplate.opsForHash().put(key, HASH_KEY, value);
             redisTemplate.expire(key, Duration.ofMinutes(60));
@@ -29,12 +29,12 @@ public class RedisSessionManager implements SessionManager {
     }
 
     @Override
-    public Object getValue(String key) {
+    public Object get(String key) {
         return redisTemplate.opsForHash().get(key, HASH_KEY);
     }
 
     @Override
-    public void deleteValue(String key) {
+    public void delete(String key) {
         if (redisTemplate.opsForHash().hasKey(key, HASH_KEY)) {
             redisTemplate.opsForHash().delete(key, HASH_KEY);
         }

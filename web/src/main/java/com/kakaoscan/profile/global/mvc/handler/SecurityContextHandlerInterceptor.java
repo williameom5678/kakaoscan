@@ -30,7 +30,7 @@ public class SecurityContextHandlerInterceptor implements HandlerInterceptor {
                     .anyMatch(auth -> "ROLE_ANONYMOUS".equals(auth.getAuthority()))).orElse(false);
 
         if (isAnonymousUser) {
-            sessionManager.deleteValue(String.format(SESSION_FORMAT, request.getSession().getId()));
+            sessionManager.delete(String.format(SESSION_FORMAT, request.getSession().getId()));
         }
 
         return true;
