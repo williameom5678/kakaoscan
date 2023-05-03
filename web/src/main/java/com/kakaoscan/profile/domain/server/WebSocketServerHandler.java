@@ -7,7 +7,7 @@ import com.kakaoscan.profile.domain.dto.UserDTO;
 import com.kakaoscan.profile.domain.enums.KafkaEventType;
 import com.kakaoscan.profile.domain.enums.MessageSendType;
 import com.kakaoscan.profile.domain.enums.Role;
-import com.kakaoscan.profile.domain.exception.InvalidAccess;
+import com.kakaoscan.profile.domain.exception.InvalidAccessException;
 import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.domain.model.UseCount;
 import com.kakaoscan.profile.domain.service.AccessLimitService;
@@ -91,11 +91,11 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
 
             UserDTO user = getUser(session);
             if (user == null) {
-                throw new InvalidAccess(MessageSendType.USER_NOT_FOUND.getMessage());
+                throw new InvalidAccessException(MessageSendType.USER_NOT_FOUND.getMessage());
             }
 
             if (Role.GUEST.equals(user.getRole()) || user.getRole() == null) {
-                throw new InvalidAccess(MessageSendType.USER_NO_PERMISSION.getMessage());
+                throw new InvalidAccessException(MessageSendType.USER_NO_PERMISSION.getMessage());
             }
 
             ClientQueue clientQueue = BridgeInstance.getClients().get(session.getId());
@@ -104,7 +104,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
             }
 
             if (clientQueue.getLastSendTick() != 0 && System.currentTimeMillis() > clientQueue.getLastSendTick()) {
-                throw new InvalidAccess(MessageSendType.REQUEST_TIME_OUT.getMessage());
+                throw new InvalidAccessException(MessageSendType.REQUEST_TIME_OUT.getMessage());
             }
 
             // receive phone number
@@ -116,18 +116,18 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
 
                     // 클라이언트 일일 사용 제한
                     if (userRequestService.getTodayUseCount(user.getEmail()) >= userLimitCount) {
-                        throw new InvalidAccess(String.format(MessageSendType.LOCAL_ACCESS_LIMIT.getMessage(), userLimitCount));
+                        throw new InvalidAccessException(String.format(MessageSendType.LOCAL_ACCESS_LIMIT.getMessage(), userLimitCount));
                     }
 
                     // 전체 일일 사용 제한
                     UseCount useCount = accessLimitService.getUseCount();
                     if (useCount.getTotalCount() >= allLimitCount * serverCount) {
-                        throw new InvalidAccess(MessageSendType.ACCESS_LIMIT.getMessage());
+                        throw new InvalidAccessException(MessageSendType.ACCESS_LIMIT.getMessage());
                     }
                 }
 
                 if (!cacheService.isEnabledPhoneNumber(receive)) {
-                    throw new InvalidAccess(MessageSendType.INVALID_NUMBER.getMessage());
+                    throw new InvalidAccessException(MessageSendType.INVALID_NUMBER.getMessage());
                 }
 
                 // put turn
@@ -153,12 +153,12 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                     // check connected
                     clientQueue = BridgeInstance.getClients().get(session.getId());
                     if (clientQueue.isFail()) {
-                        throw new InvalidAccess(MessageSendType.SERVER_INSTANCE_NOT_RUN.getMessage());
+                        throw new InvalidAccessException(MessageSendType.SERVER_INSTANCE_NOT_RUN.getMessage());
                     }
 
                     // time out
                     if (clientQueue.getLastReceivedTick() != 0 && System.currentTimeMillis() > clientQueue.getLastReceivedTick()) {
-                        throw new InvalidAccess(MessageSendType.REQUEST_TIME_OUT.getMessage());
+                        throw new InvalidAccessException(MessageSendType.REQUEST_TIME_OUT.getMessage());
 
                     } else if (clientQueue.getLastReceivedTick() == 0) {
                         clientQueue.setLastReceivedTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
@@ -189,7 +189,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
 
                 session.sendMessage(new TextMessage(viewMessage));
             }
-        } catch (InvalidAccess e) {
+        } catch (InvalidAccessException e) {
             session.sendMessage(new TextMessage(e.getMessage()));
             removeSessionHash(session);
         } catch (Exception e) {
