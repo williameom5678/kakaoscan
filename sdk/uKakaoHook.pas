@@ -303,6 +303,28 @@ asm
   call pOriginSetBlockCount;
 end;
 
+procedure CheckShowImageList;
+  procedure f; stdcall;
+  begin
+    Inc(Kakao.SharableInstance.pImageShowCount);
+  end;
+asm
+  test ecx, ecx
+  je @EndPoint
+
+  push 00
+  mov eax, [ecx]
+  call dword ptr [eax+$38]
+
+  pushad
+  call f
+  popad
+
+  @EndPoint:
+  pop ebp
+  ret $0008
+end;
+
 procedure Init;
 begin
   Kakao:= TKakao.Create;
@@ -345,6 +367,10 @@ begin
     // Save2
     CallHook(Kakao.HookSaveFileCustom, @SaveFileCustom);
     WriteProtectMemory1(Kakao.HookSaveFileCustom + 5, $90); // nop
+
+    // check show image
+    JumpHook(Kakao.HookShowImage, @CheckShowImageList);
+
 
     // 프로필 next
 //    pNextProfile:= Ptr(Kakao.FuncNextProfile);

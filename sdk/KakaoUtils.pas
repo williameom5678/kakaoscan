@@ -33,6 +33,7 @@ type
       FHookHttpRespon: DWORD;
       FHookBlockCount: DWORD;
       FHookSyncFriend: DWORD;
+      FHookShowImage: DWORD;
 
       FSharableMemoryCache: Pointer;
 
@@ -54,6 +55,7 @@ type
       property HookHttpRespon: DWORD read FHookHttpRespon write FHookHttpRespon;
       property HookBlockCount: DWORD read FHookBlockCount write FHookBlockCount;
       property HookSyncFriend: DWORD read FHookSyncFriend write FHookSyncFriend;
+      property HookShowImage: DWORD read FHookShowImage write FHookShowImage;
 
       property SharableInstance: PSharableInstance read FSharableInstance write FSharableInstance;
 
@@ -158,6 +160,7 @@ begin
     FHookHttpRespon:= AOBSCAN(SIG_HTTP_RESPON, 1) + $A;
 //    FHookBlockCount:= AOBSCAN(SIG_BLOCK_COUNT, 0) + $B;
     FHookSyncFriend:= AOBSCAN(SIG_SYNC_FRIEND, 0) + $10;
+    FHookShowImage:= AOBSCAN(SIG_SHOW_IMAGE, 0);
 
     // 공유 메모리 할당
     FSharableInstance:= VirtualAlloc(nil, $4000, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
@@ -429,6 +432,8 @@ var
   FileCase: Array [0..1] of String;
   ViewFriendBitmap: TBitmap;
   BaseDir: WideString;
+  BeforeTick: DWORD;
+  BeforeCount: DWORD;
 begin
   Thread:= TThread.CreateAnonymousThread(procedure
   begin
@@ -449,6 +454,23 @@ begin
 
     var Step:= 1;
 
+    const SafeImageMenuClick = function(x, y: Integer): Boolean
+    begin
+      BeforeCount:= SharableMemory.SharableInstance.pImageShowCount;
+      Click(ViewFriendHandle, x, y);
+
+      BeforeTick:= GetTickCount;
+      while BeforeTick + 1250 > GetTickCount do
+      begin
+        Sleep(50);
+
+        if SharableMemory.SharableInstance.pImageShowCount = BeforeCount then
+          Exit(True);
+      end;
+
+      Exit(False);
+    end;
+
     while True do
     begin
       try
@@ -458,19 +480,36 @@ begin
         try
           FState:= TState.ViewProfileImage;
 
+          // 프로필 이미지 없음
+          if GetViewProfileHandleCount >= 2 then
+          begin
+            Inc(Step);
+
+            if Step > 2 then
+              Exit;
+          end;
+
           SharableMemory.SharableInstance.UpdateMemory;
+          var IsSuccess:= False;
           if Step = 1 then
           begin
             SharableMemory.SharableInstance.gSaveStep:= 1;
-            Click(ViewFriendHandle, 150, 390);
+            IsSuccess:= SafeImageMenuClick(150, 390);
           end else
           begin
             SharableMemory.SharableInstance.gSaveStep:= 2;
-            Click(ViewFriendHandle, 20, 20);
+            IsSuccess:= SafeImageMenuClick(20, 20);
           end;
           SharableMemory.SharableInstance.WriteMemory;
 
-          Sleep(1000);
+          if not IsSuccess then
+          begin
+            Inc(GetViewProfileHandleCount);
+            Continue;
+          end
+          else begin
+            Sleep(1000);
+          end;
 
           // 프로필 이미지 뷰어 핸들을 구한다
           Source:= CustomName + ' 1/';
@@ -568,14 +607,6 @@ begin
 //              Sleep(1000);
 
             Inc(GetViewProfileHandleCount);
-
-            if GetViewProfileHandleCount >= 2 then // 프로필 이미지 없음
-            begin
-              Inc(Step);
-
-              if Step > 2 then
-                Exit;
-            end;
           end;
 
         finally
