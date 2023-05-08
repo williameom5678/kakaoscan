@@ -1,7 +1,7 @@
 package com.kakaoscan.profile.domain.server;
 
 import com.kakaoscan.profile.domain.bridge.BridgeInstance;
-import com.kakaoscan.profile.domain.bridge.ClientQueue;
+import com.kakaoscan.profile.domain.bridge.ClientPayload;
 import com.kakaoscan.profile.domain.client.NettyClientInstance;
 import com.kakaoscan.profile.domain.dto.UserDTO;
 import com.kakaoscan.profile.domain.enums.KafkaEventType;
@@ -26,7 +26,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.kakaoscan.profile.utils.StrUtils.isNumeric;
 
@@ -45,8 +44,6 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
 
     private static final int EVG_WAITING_SEC = 20;
     private static final int REQUEST_TIMEOUT_TICK = 5 * 1000;
-
-    private static final Map<WebSocketSession, String> clientsRemoteAddress = new ConcurrentHashMap<>();
 
     private final NettyClientInstance nettyClientInstance;
     private final AccessLimitService accessLimitService;
@@ -71,11 +68,6 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
         }
     }
 
-    public void removeSessionHash(WebSocketSession session) {
-        BridgeInstance.getClients().remove(session.getId());
-        clientsRemoteAddress.remove(session);
-    }
-
     private boolean isPhoneNumber(String receive) {
         return isNumeric(receive) && receive.length() == 11;
     }
@@ -94,21 +86,18 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                 throw new InvalidAccessException(MessageSendType.USER_NOT_FOUND.getMessage());
             }
 
-            if (Role.GUEST.equals(user.getRole()) || user.getRole() == null) {
+            if (user.getRole() == null || Role.GUEST.equals(user.getRole())) {
                 throw new InvalidAccessException(MessageSendType.USER_NO_PERMISSION.getMessage());
             }
 
-            ClientQueue clientQueue = BridgeInstance.getClients().get(session.getId());
-            if (clientQueue == null) {
-                throw new NullPointerException("null client queue");
-            }
+            ClientPayload clientPayload = BridgeInstance.getPayloadBySessionId(session.getId());
 
-            if (clientQueue.getLastSendTick() != 0 && System.currentTimeMillis() > clientQueue.getLastSendTick()) {
+            if (clientPayload.getLastSendTick() != 0 && System.currentTimeMillis() > clientPayload.getLastSendTick()) {
                 throw new InvalidAccessException(MessageSendType.REQUEST_TIME_OUT.getMessage());
             }
 
             // receive phone number
-            if (isPhoneNumber(receive) && clientQueue.getRequestTick() == Long.MAX_VALUE) {
+            if (isPhoneNumber(receive) && clientPayload.getRequestTick() == Long.MAX_VALUE) {
 
                 if (!addedNumberService.isExistsPhoneNumberHash(receive)) {
                     // remoteAddress 같은 계정 사용 횟수 동기화
@@ -131,57 +120,61 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
                 }
 
                 // put turn
-                BridgeInstance.getClients().put(session.getId(), new ClientQueue(System.currentTimeMillis(), 0, System.currentTimeMillis() + REQUEST_TIMEOUT_TICK, receive, "", false, false));
-
+                BridgeInstance.addPayload(ClientPayload.builder()
+                            .session(session.getId())
+                            .requestTick(System.currentTimeMillis())
+                            .lastSendTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK)
+                            .request(receive)
+                            .build());
             } else if (MessageSendType.HEARTBEAT.getMessage().equals(receive)) {
                 // update
-                clientQueue.setLastSendTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
-                BridgeInstance.getClients().put(session.getId(), clientQueue);
+                clientPayload.setLastSendTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
+                BridgeInstance.addPayload(clientPayload);
 
-                long turn = BridgeInstance.getTurn(session.getId());
-
+                int priority = clientPayload.getPriority();
                 // 대기큐가 1명 이상이면 남은 대기 시간 전달
-                String viewMessage = String.format(MessageSendType.REMAINING_QUEUE.getMessage(), turn, turn * EVG_WAITING_SEC);
+                String viewMessage = String.format(MessageSendType.REMAINING_QUEUE.getMessage(), priority, priority * EVG_WAITING_SEC);
 
-                if (turn == 0) {
-
-                    if (!clientQueue.isConnected()) {
-                        clientQueue.setConnected(true);
+                if (priority == 0) {
+                    if (!clientPayload.isTryConnect()) {
+                        clientPayload.setTryConnect(true);
                         nettyClientInstance.connect(0, session.getId());
                     }
 
                     // check connected
-                    clientQueue = BridgeInstance.getClients().get(session.getId());
-                    if (clientQueue.isFail()) {
+                    clientPayload = BridgeInstance.getPayloadBySessionId(session.getId());
+                    if (clientPayload.isConnectFail()) {
                         throw new InvalidAccessException(MessageSendType.SERVER_INSTANCE_NOT_RUN.getMessage());
                     }
 
                     // time out
-                    if (clientQueue.getLastReceivedTick() != 0 && System.currentTimeMillis() > clientQueue.getLastReceivedTick()) {
+                    if (clientPayload.getLastReceivedTick() != 0 && System.currentTimeMillis() > clientPayload.getLastReceivedTick()) {
                         throw new InvalidAccessException(MessageSendType.REQUEST_TIME_OUT.getMessage());
 
-                    } else if (clientQueue.getLastReceivedTick() == 0) {
-                        clientQueue.setLastReceivedTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
-                        BridgeInstance.getClients().put(session.getId(), clientQueue);
+                    } else if (clientPayload.getLastReceivedTick() == 0) {
+                        clientPayload.setLastReceivedTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
+                        BridgeInstance.addPayload(clientPayload);
                     }
 
                     // send (세션/메세지타입/번호/아이피해시/이메일)
-                    if (clientQueue.getRequest().length() > 0) {
-                        BridgeInstance.send(String.format("[%s]%s:%s<%s>(%s)", session.getId(), MessageSendType.PROFILE.getMessage(), clientQueue.getRequest(), getRemoteAddress(session), user.getEmail()));
+                    if (clientPayload.getRequest() != null && clientPayload.getRequest().length() > 0) {
+                        BridgeInstance.send(String.format("[%s]%s:%s<%s>(%s)", session.getId(), MessageSendType.PROFILE.getMessage(), clientPayload.getRequest(), getRemoteAddress(session), user.getEmail()));
                     }
 
                     viewMessage = MessageSendType.TURN_LOCAL.getMessage();
-
-                    ClientQueue queue = BridgeInstance.getClients().get(session.getId());
-
                     // check server response
-                    if (queue.getResponse().length() > 0) {
-                        viewMessage = queue.getResponse();
-                        BridgeInstance.getClients().put(session.getId(), new ClientQueue(Long.MAX_VALUE, 0, 0, "", "", false, false));
+                    if (clientPayload.getResponse() != null && clientPayload.getResponse().length() > 0) {
+                        viewMessage = clientPayload.getResponse();
+
+                        BridgeInstance.addPayload(ClientPayload.builder()
+                                .session(session.getId())
+                                .requestTick(Long.MAX_VALUE)
+                                .lastSendTick(0)
+                                .build());
 
                         Map<String, Object> map = new HashMap<>();
                         map.put("email", user.getEmail());
-                        map.put("phoneNumber", queue.getRequest());
+                        map.put("phoneNumber", clientPayload.getRequest());
                         map.put("scanResultJson", viewMessage);
                         producerService.send(KafkaEventType.SCAN_AFTER_EVENT, map);
                     }
@@ -191,7 +184,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
             }
         } catch (InvalidAccessException e) {
             session.sendMessage(new TextMessage(e.getMessage()));
-            removeSessionHash(session);
+            BridgeInstance.removePayloadBySessionId(session.getId());
         } catch (Exception e) {
             log.error("[socket message handler error] " + e);
         }
@@ -206,27 +199,18 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
             return;
         }
 
-//        // 동일한 아이피 접속 체크
-//        for (Map.Entry<WebSocketSession, String> ss : clientsRemoteAddress.entrySet()) {
-//            if (remoteAddress.equals(ss.getValue())) {
-//                removeSessionHash(ss.getKey());
-//                synchronized (this) {
-//                    ss.getKey().sendMessage(new TextMessage(MessageSendType.CONNECT_CLOSE_IP.getMessage()));
-//                }
-//            }
-//        }
-
-        BridgeInstance.getClients().put(session.getId(), new ClientQueue(Long.MAX_VALUE, 0, 0, "", "", false, false));
-
-        clientsRemoteAddress.put(session, remoteAddress);
+        BridgeInstance.addPayload(ClientPayload.builder()
+                .session(session.getId())
+                .requestTick(Long.MAX_VALUE)
+                .lastSendTick(0)
+                .build());
 
 //        log.info("[web client connect] " + session.getId());
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        removeSessionHash(session);
-
+        BridgeInstance.removePayloadBySessionId(session.getId());
 //        log.info("[web client disconnect] " + session.getId());
     }
 }

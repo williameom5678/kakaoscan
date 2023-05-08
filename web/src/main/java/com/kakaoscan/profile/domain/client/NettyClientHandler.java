@@ -1,7 +1,7 @@
 package com.kakaoscan.profile.domain.client;
 
 import com.kakaoscan.profile.domain.bridge.BridgeInstance;
-import com.kakaoscan.profile.domain.bridge.ClientQueue;
+import com.kakaoscan.profile.domain.bridge.ClientPayload;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
@@ -44,25 +44,21 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
             String wsSession = s[0];
             String jsonMessage = s[1];
             // check session
-            if (!BridgeInstance.getClients().containsKey(wsSession)) {
-                BridgeInstance.getClients().remove(wsSession);
-                ctx.close();
 
-            }else {
-                ClientQueue clientQueue = BridgeInstance.getClients().get(wsSession);
+            ClientPayload clientPayload = BridgeInstance.getPayloadBySessionId(wsSession);
 
-                clientQueue.setLastReceivedTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
-
-                // response
-                if (jsonMessage.length() > 0) {
-                    clientQueue.setResponse(jsonMessage);
-                    clientQueue.setConnected(true);
-                    clientQueue.setFail(false);
-                    BridgeInstance.clear();
-                }
-
-                BridgeInstance.getClients().put(wsSession, clientQueue);
+            // response
+            clientPayload.setLastReceivedTick(System.currentTimeMillis() + REQUEST_TIMEOUT_TICK);
+            if (jsonMessage!= null && jsonMessage.length() > 0) {
+                clientPayload.setResponse(jsonMessage);
+                clientPayload.setTryConnect(true);
+                clientPayload.setConnectFail(false);
+                BridgeInstance.clear();
             }
+
+            BridgeInstance.addPayload(clientPayload);
+        }catch (NullPointerException e) {
+            ctx.close();
         }finally {
             buf.release();
         }

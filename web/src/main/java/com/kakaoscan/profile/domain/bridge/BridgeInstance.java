@@ -2,11 +2,7 @@ package com.kakaoscan.profile.domain.bridge;
 
 import lombok.extern.log4j.Log4j2;
 
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -20,32 +16,42 @@ public class BridgeInstance {
     /**
      * 연결 된 클라이언트 목록
      */
-    private static final Map<String, ClientQueue> clients = new ConcurrentHashMap<>();
+    private static final ConcurrentSkipListSet<ClientPayload> clients = new ConcurrentSkipListSet<>();
     /**
      * to tcp
      */
     private static String message = new String();
 
-    public static Map<String, ClientQueue> getClients() {
-        return clients;
+    public static void addPayload(ClientPayload clientPayload) {
+        removePayloadBySessionId(clientPayload.getSession());
+
+        clients.add(clientPayload);
+        int priority = 0;
+        for (ClientPayload payload : clients) {
+            payload.setPriority(priority++);
+        }
     }
 
-    /**
-     * 세션의 대기 순번을 구한다
-     * @param session
-     * @return
-     */
-    public static long getTurn(String session) {
-        List<Map.Entry<String, ClientQueue>> clientList = new LinkedList<>(clients.entrySet());
-        clientList.sort((Comparator.comparingLong(o -> o.getValue().getRequestTick())));
-
-        for (int i = 0; i < clientList.size(); i++) {
-            if (clientList.get(i).getKey().equals(session)) {
-                return i;
+    public static ClientPayload getPayloadBySessionId(String session) {
+        for (ClientPayload payload : clients) {
+            if (session.equals(payload.getSession())) {
+                return payload;
             }
         }
+        throw new NullPointerException();
+    }
 
-        return -1;
+    public static void removePayloadBySessionId(String session) {
+        ClientPayload toRemove = null;
+        for (ClientPayload payload : clients) {
+            if (session.equals(payload.getSession())) {
+                toRemove = payload;
+                break;
+            }
+        }
+        if (toRemove != null) {
+            clients.remove(toRemove);
+        }
     }
 
     public static String getMessage() {

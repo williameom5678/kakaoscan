@@ -1,11 +1,16 @@
 package com.kakaoscan.profile.domain.bridge;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 @AllArgsConstructor
 @Getter
 @Setter
-public class ClientQueue {
+@Builder
+public class ClientPayload implements Comparable<ClientPayload> {
+    private String session;
     /**
      * 요청 시간순으로 정렬
      */
@@ -29,9 +34,20 @@ public class ClientQueue {
     /**
      * connect flag
      */
-    private boolean connected;
+    private boolean tryConnect;
     /**
      * response connected state
      */
-    private boolean fail;
+    private boolean connectFail;
+
+    private int priority;
+
+    @Override
+    public int compareTo(ClientPayload o) {
+        int comp = Long.compare(this.requestTick, o.requestTick);
+        if (comp != 0) {
+            return comp;
+        }
+        return this.session.compareTo(o.session);
+    }
 }

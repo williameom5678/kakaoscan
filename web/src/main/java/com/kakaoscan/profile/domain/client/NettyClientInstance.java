@@ -1,12 +1,11 @@
 package com.kakaoscan.profile.domain.client;
 
 import com.kakaoscan.profile.domain.bridge.BridgeInstance;
-import com.kakaoscan.profile.domain.bridge.ClientQueue;
+import com.kakaoscan.profile.domain.bridge.ClientPayload;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFutureListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -51,11 +50,9 @@ public class NettyClientInstance {
                 setStartTime(-1);
                 log.error("[server connect fail] " + future.cause());
 
-                if (BridgeInstance.getClients().containsKey(session)) {
-                    ClientQueue clientQueue = BridgeInstance.getClients().get(session);
-                    clientQueue.setFail(true);
-                    BridgeInstance.getClients().put(session, clientQueue);
-                }
+                ClientPayload clientPayload = BridgeInstance.getPayloadBySessionId(session);
+                clientPayload.setConnectFail(true);
+                BridgeInstance.addPayload(clientPayload);
             }
         });
     }
