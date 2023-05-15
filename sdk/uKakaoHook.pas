@@ -321,7 +321,7 @@ asm
   popad
 
   @EndPoint:
-  pop ebp
+  leave
   ret $0008
 end;
 

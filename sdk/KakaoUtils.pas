@@ -544,6 +544,8 @@ begin
                 // max save image count, check end of image
                 if (CurrentPage >= IMG_MAX_DOWNLOAD_COUNT) Or ((Length(ImagePage) = 3) And (ImagePage[1].Equals(ImagePage[2]))) then
                 begin
+                  Sleep(250);
+
                   Inc(Step);
 
                   if Step > 2 then
@@ -634,6 +636,15 @@ begin
   Thread:= TThread.CreateAnonymousThread(procedure
   begin
     CreateSharable;
+    SharableMemory.SharableInstance.UpdateMemory;
+    SharableMemory.SharableInstance.gSaveStep:= 1;
+    SharableMemory.SharableInstance.WriteMemory;
+    while True do
+    begin
+      SharableMemory.SharableInstance.UpdateMemory;
+      if SharableMemory.SharableInstance.gSaveStep = 1 then
+        break;
+    end;
 
     EnterCriticalSection(CriticalSection);
     try
@@ -649,10 +660,6 @@ begin
       const firstProfileImage = Format('%s%s\%s\1.mp4.jpg', [ROOT, StrToMD5(AnsiString(SharableMemory.SharableInstance.GetFriendCustomName)), IIS_PROFILE_PATH]);
       if not FileExists(firstProfileImage) then
       begin
-        SharableMemory.SharableInstance.UpdateMemory;
-        SharableMemory.SharableInstance.gSaveStep:= 1;
-        SharableMemory.SharableInstance.WriteMemory;
-        Sleep(500);
         for var i := 1 to 4 do
           Click(ViewFriendHandle, 150, 390);
       end;
