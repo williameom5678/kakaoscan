@@ -159,7 +159,7 @@ begin
 //    FFuncNextProfile:= AOBSCAN(SIG_NEXT_PROFILE, 0);
     FHookHttpRespon:= AOBSCAN(SIG_HTTP_RESPON, 1) + $A;
 //    FHookBlockCount:= AOBSCAN(SIG_BLOCK_COUNT, 0) + $B;
-    FHookSyncFriend:= AOBSCAN(SIG_SYNC_FRIEND, 0) + $10;
+//    FHookSyncFriend:= AOBSCAN(SIG_SYNC_FRIEND, 0) + $10;
     FHookShowImage:= AOBSCAN(SIG_SHOW_IMAGE, 0);
 
     // 공유 메모리 할당
