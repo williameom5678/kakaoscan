@@ -36,11 +36,18 @@ public class KafkaEventListener {
     public void onScanAfterEvent(KafkaScanAfterEvent event) {
         try {
             ScanResult scanResult = ScanResult.deserialize(event.getScanResultJson());
-            if (scanResult != null && scanResult.getErrorMessage() == null) {
-                userHistoryService.updateHistory(event.getEmail(), event.getPhoneNumber(), event.getScanResultJson());
-                addedNumberService.appendPhoneNumberHash(event.getPhoneNumber());
-                userService.incTotalUseCount(event.getEmail());
+            if (scanResult == null || scanResult.getErrorMessage() != null) {
+                return;
             }
+
+            if ("{}".equals(event.getScanResultJson())) {
+                log.error("server app error");
+                return;
+            }
+
+            userHistoryService.updateHistory(event.getEmail(), event.getPhoneNumber(), event.getScanResultJson());
+            addedNumberService.appendPhoneNumberHash(event.getPhoneNumber());
+            userService.incTotalUseCount(event.getEmail());
 
             log.info("update history : {}", event.getEmail());
         } catch (Exception e){
