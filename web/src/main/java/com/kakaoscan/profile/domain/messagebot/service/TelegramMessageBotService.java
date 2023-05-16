@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class TelegramMessageBotServiceService implements MessageBotService {
+public class TelegramMessageBotService implements MessageBotService {
 
     private final MessageBotKey messageBotKey;
 
