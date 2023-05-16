@@ -4,6 +4,7 @@ import com.kakaoscan.profile.domain.batch.config.BatchConfig;
 import com.kakaoscan.profile.domain.batch.runner.JobRunner;
 import com.kakaoscan.profile.domain.batch.userlog.UserLogQueueService;
 import com.kakaoscan.profile.domain.entity.UserLog;
+import com.kakaoscan.profile.domain.messagebot.service.MessageBotService;
 import com.kakaoscan.profile.domain.model.EmailMessage;
 import com.kakaoscan.profile.domain.model.ScanResult;
 import com.kakaoscan.profile.domain.service.AddedNumberService;
@@ -31,6 +32,8 @@ public class KafkaEventListener {
 
     private final UserLogQueueService userLogQueue;
 
+    private final MessageBotService messageBotService;
+
     @Async
     @EventListener
     public void onScanAfterEvent(KafkaScanAfterEvent event) {
@@ -41,7 +44,7 @@ public class KafkaEventListener {
             }
 
             if ("{}".equals(event.getScanResultJson())) {
-                log.error("server app error");
+                messageBotService.send(String.format("server app error\n%s - %s", event.getEmail(), event.getPhoneNumber()));
                 return;
             }
 
@@ -84,6 +87,7 @@ public class KafkaEventListener {
             if (userLogQueue.size() >= BatchConfig.BATCH_SIZE) {
                 try {
                     jobRunner.run();
+                    messageBotService.send("batch record logs");
                 }catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
