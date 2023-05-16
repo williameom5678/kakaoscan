@@ -87,7 +87,6 @@ public class KafkaEventListener {
             if (userLogQueue.size() >= BatchConfig.BATCH_SIZE) {
                 try {
                     jobRunner.run();
-                    messageBotService.send("batch record logs");
                 }catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
