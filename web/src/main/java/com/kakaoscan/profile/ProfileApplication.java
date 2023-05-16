@@ -20,6 +20,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 		  		 "classpath:application-smtp.properties",
 		  		 "classpath:application-redis.properties",
 		  		 "classpath:application-kafka.properties",
+		  		 "classpath:application-messagebot.properties",
 		 		 "classpath:application-oauth.yml"})
 public class ProfileApplication {
 	@Value("${tcp.host}")
