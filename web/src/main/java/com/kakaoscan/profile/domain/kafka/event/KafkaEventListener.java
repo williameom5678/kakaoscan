@@ -97,4 +97,13 @@ public class KafkaEventListener {
         }
     }
 
+    @EventListener
+    public void onMessageBotEvent(KafkaMessageBotEvent event) {
+        try {
+            messageBotService.send(event.getMessage());
+        } catch (Exception e){
+            log.error("message bot event error : {}", e.getMessage(), e);
+        }
+    }
+
 }

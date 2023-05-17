@@ -2,10 +2,7 @@ package com.kakaoscan.profile.domain.kafka.service;
 
 import com.kakaoscan.profile.domain.enums.KafkaEventType;
 import com.kakaoscan.profile.domain.kafka.config.KafkaProperties;
-import com.kakaoscan.profile.domain.kafka.event.KafkaEvent;
-import com.kakaoscan.profile.domain.kafka.event.KafkaRecordLogEvent;
-import com.kakaoscan.profile.domain.kafka.event.KafkaScanAfterEvent;
-import com.kakaoscan.profile.domain.kafka.event.KafkaSendMailEvent;
+import com.kakaoscan.profile.domain.kafka.event.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -49,6 +46,11 @@ public class KafkaConsumerService {
                 case RECORD_LOG_EVENT:
                     KafkaEvent kafkaRecordLogEvent = new KafkaRecordLogEvent(map);
                     eventPublisher.publishEvent(kafkaRecordLogEvent);
+                    break;
+
+                case MESSAGE_BOT_EVENT:
+                    KafkaEvent kafkaMessageBotEvent = new KafkaMessageBotEvent(map);
+                    eventPublisher.publishEvent(kafkaMessageBotEvent);
                     break;
 
                 default:
