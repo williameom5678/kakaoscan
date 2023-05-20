@@ -1,5 +1,6 @@
 package com.kakaoscan.profile.domain.kafka.event;
 
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Map;
@@ -16,5 +17,12 @@ public class KafkaMessageBotEvent extends KafkaEvent{
         super(new Object());
         super.email = ((String) source.get("email"));
         this.message = ((String) source.get("message"));
+    }
+
+    @Builder
+    public KafkaMessageBotEvent(String email, String message) {
+        super(new Object());
+        super.email = email;
+        this.message = message;
     }
 }

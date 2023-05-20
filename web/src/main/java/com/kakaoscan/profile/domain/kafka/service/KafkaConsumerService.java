@@ -25,8 +25,8 @@ import java.util.Map;
 public class KafkaConsumerService {
     private final ApplicationEventPublisher eventPublisher;
 
-    @KafkaListener(topics = {KafkaProperties.TOPIC_EVENT}, groupId = KafkaProperties.GROUP_EVENT, containerFactory = "kafkaListenerContainerFactory")
-    public void onMessage(ConsumerRecord<KafkaEventType, Map<String, Object>> record, Acknowledgment ack) {
+    @KafkaListener(topics = {KafkaProperties.TOPIC_EVENT}, groupId = KafkaProperties.GROUP_EVENT, containerFactory = "eventTypeMapListenerContainerFactory")
+    public void onMessageEventTypeMap(ConsumerRecord<KafkaEventType, Map<String, Object>> record, Acknowledgment ack) {
         try {
 
             KafkaEventType eventType = KafkaEventType.valueOf(String.valueOf(record.key()).split(":")[0].toUpperCase());
@@ -65,10 +65,43 @@ public class KafkaConsumerService {
         }
     }
 
+    @KafkaListener(topics = {KafkaProperties.TOPIC_SERVER_EVENT}, groupId = KafkaProperties.GROUP_SERVER_EVENT, containerFactory = "stringStringListenerContainerFactory")
+    public void onMessageStringString(ConsumerRecord<String, String> record, Acknowledgment ack) {
+        try {
+
+            KafkaEventType eventType = KafkaEventType.valueOf(String.valueOf(record.key()).split(":")[0].toUpperCase());
+
+            switch (eventType) {
+                case ALERT_SERVER_ERROR_EVENT:
+                    KafkaEvent kafkaMessageBotEvent = KafkaMessageBotEvent.builder()
+                            .message(record.value())
+                            .build();
+                    eventPublisher.publishEvent(kafkaMessageBotEvent);
+                    break;
+
+                default:
+                    log.error("invalid kafka event : {}", eventType);
+                    break;
+            }
+
+            ack.acknowledge();
+
+        } catch (Exception e) {
+            log.error("consumer onMessage error : {}", e.getMessage(), e);
+        }
+    }
+
     @Bean
-    public ErrorHandler errorHandler(KafkaTemplate<KafkaEventType, Map<String, Object>> kafkaTemplate) {
+    public ErrorHandler eventTypeMapErrorHandler(KafkaTemplate<KafkaEventType, Map<String, Object>> kafkaTemplate) {
         DeadLetterPublishingRecoverer deadLetterPublishingRecoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
         FixedBackOff backOff = new FixedBackOff(1000L, 1L); // n초 대기, n번 재시도
+        return new SeekToCurrentErrorHandler(deadLetterPublishingRecoverer, backOff);
+    }
+
+    @Bean
+    public ErrorHandler stringStringErrorHandler(KafkaTemplate<String, String> kafkaTemplate) {
+        DeadLetterPublishingRecoverer deadLetterPublishingRecoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
+        FixedBackOff backOff = new FixedBackOff(1000L, 1L);
         return new SeekToCurrentErrorHandler(deadLetterPublishingRecoverer, backOff);
     }
 }

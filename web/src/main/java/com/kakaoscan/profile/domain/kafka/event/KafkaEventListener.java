@@ -44,7 +44,6 @@ public class KafkaEventListener {
             }
 
             if ("{}".equals(event.getScanResultJson())) {
-                messageBotService.send(String.format("server app error\n%s - %s", event.getEmail(), event.getPhoneNumber()));
                 return;
             }
 
