@@ -1,4 +1,4 @@
-package com.kakaoscan.profile.fomatter.p6spy;
+package com.kakaoscan.profile.fomatter;
 
 import com.p6spy.engine.common.ConnectionInformation;
 import com.p6spy.engine.event.JdbcEventListener;
