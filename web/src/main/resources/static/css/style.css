@@ -5,7 +5,7 @@
     width: 100%;
     padding: 20px 24px 20px 68px;
     border: 0;
-    background: url('../img/search823x72.png') no-repeat;
+    background: url('../img/search823x72.svg') no-repeat;
     line-height: 32px;
     font-size: 22px;
     font-weight: 700;
@@ -51,7 +51,7 @@
 
     .container_search .search input {
         padding: 18px 24px 18px 64px;
-        background-image: url('../img/search600x60.png');
+        background-image: url('../img/search600x60.svg');
         line-height: 24px;
         font-size: 20px;
     }
@@ -76,7 +76,7 @@
     }
 
     .container_search .search input {
-        background-image: url('../img/search450x60.png');
+        background-image: url('../img/search450x60.svg');
     }
 
     .container_search .search {
@@ -118,7 +118,7 @@
         right: -5px;
         width: 20px;
         height: 20px;
-        background-image: url('../img/search_tail.png');
+        background-image: url('../img/search_tail.svg');
         content: "";
     }
 
