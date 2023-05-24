@@ -44,34 +44,28 @@ public class UserHistoryService {
         List<UserHistory> userHistories = optionalUserHistories.get();
         List<UserHistoryDTO> userHistoryDTOS = userHistories.stream()
                 .map(userHistory -> {
-                    try {
-                        UserHistoryDTO userHistoryDTO = UserHistoryDTO.toDTO((userHistory));
+                    UserHistoryDTO userHistoryDTO = UserHistoryDTO.toDTO((userHistory));
 
-                        ScanResult scanResult = userHistoryDTO.getScanResult();
+                    ScanResult scanResult = userHistoryDTO.getScanResult();
 
-                        List<ScanResult.ImageUrl> imageUrlList = scanResult.getImageUrlList();
-                        imageUrlList.forEach(v -> {
-                            v.setUrl(String.format(IMAGE_URL_FORMAT, scanResult.getHost() + v.getDir(), v.getName()));
-                        });
+                    List<ScanResult.ImageUrl> imageUrlList = scanResult.getImageUrlList();
+                    imageUrlList.forEach(v -> {
+                        v.setUrl(String.format(IMAGE_URL_FORMAT, scanResult.getHost() + v.getDir(), v.getName()));
+                    });
 
-                        List<ScanResult.ImageUrl> bgImageUrlList = scanResult.getBgImageUrlList();
-                        bgImageUrlList.forEach(v -> {
-                            v.setUrl(String.format(IMAGE_URL_FORMAT, scanResult.getHost() + v.getDir(), v.getName()));
-                        });
+                    List<ScanResult.ImageUrl> bgImageUrlList = scanResult.getBgImageUrlList();
+                    bgImageUrlList.forEach(v -> {
+                        v.setUrl(String.format(IMAGE_URL_FORMAT, scanResult.getHost() + v.getDir(), v.getName()));
+                    });
 
-                        List<ScanResult.VideoUrl> videoUrlList = scanResult.getVideoUrlList();
-                        videoUrlList.forEach(v -> {
-                            v.setUrl(String.format(VIDEO_URL_FORMAT, scanResult.getHost() + v.getDir(), v.getName()));
-                        });
+                    List<ScanResult.VideoUrl> videoUrlList = scanResult.getVideoUrlList();
+                    videoUrlList.forEach(v -> {
+                        v.setUrl(String.format(VIDEO_URL_FORMAT, scanResult.getHost() + v.getDir(), v.getName()));
+                    });
 
-                        userHistoryDTO.setScanResult(scanResult);
+                    userHistoryDTO.setScanResult(scanResult);
 
-                        return userHistoryDTO;
-
-                    } catch (Exception e) {
-                        log.error("get history error");
-                        throw new RuntimeException(e);
-                    }
+                    return userHistoryDTO;
                 })
                 .collect(Collectors.toList());
 
@@ -88,6 +82,15 @@ public class UserHistoryService {
                     .anyMatch(userHistory -> phoneNumber.equals(userHistory.getPhoneNumber()));
         }
         return false;
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserHistoryDTO> getAllHistory() {
+        List<UserHistory> userHistories = userHistoryRepository.findAll();
+
+        return userHistories.stream()
+                .map(UserHistoryDTO::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional
