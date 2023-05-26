@@ -66,12 +66,12 @@ public class ScanResult {
     @JsonProperty("Error")
     private String errorMessage;
 
-    public String getOriginName() {
-        return Objects.isNull(originName) || originName.isEmpty() ? "이름 없음" : originName;
+    public void setOriginName(String originName) {
+        this.originName = Objects.isNull(originName) || originName.isEmpty() ? "이름 없음" : originName;
     }
 
-    public String getStatusMessage() {
-        return Objects.isNull(statusMessage) || statusMessage.isEmpty() ? "상태메세지 없음" : statusMessage;
+    public void setStatusMessage(String statusMessage) {
+        this.statusMessage = Objects.isNull(statusMessage) || statusMessage.isEmpty() ? "상태메세지 없음" : statusMessage;
     }
 
     @Getter
