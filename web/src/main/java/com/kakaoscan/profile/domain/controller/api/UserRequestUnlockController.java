@@ -9,11 +9,12 @@ import com.kakaoscan.profile.domain.enums.LogType;
 import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.domain.service.UserRequestUnlockService;
 import com.kakaoscan.profile.global.oauth.annotation.UserAttributes;
+import com.kakaoscan.profile.global.security.annotation.AdminRoleAccess;
+import com.kakaoscan.profile.global.security.annotation.GuestRoleAccess;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,7 +35,7 @@ public class UserRequestUnlockController extends ApiBaseController {
     private final KafkaProducerService producerService;
 
     @PostMapping("/unlock")
-    @PreAuthorize("hasRole('ROLE_GUEST')")
+    @GuestRoleAccess
     public ResponseEntity<?> updateUnlockMessage(@Valid @RequestBody UserRequestUnlockDTO userRequestUnlockDTO,
                                                  @UserAttributes UserDTO attributes, HttpServletRequest request) {
 
@@ -53,7 +54,7 @@ public class UserRequestUnlockController extends ApiBaseController {
     }
 
     @GetMapping("/unlock")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @AdminRoleAccess
     public ResponseEntity<?> getUnlockMessage(@RequestParam String email) {
 
         Optional<UserRequestUnlock> userRequestUnlockOptional = Optional.ofNullable(userRequestUnlockService.findByEmail(email));

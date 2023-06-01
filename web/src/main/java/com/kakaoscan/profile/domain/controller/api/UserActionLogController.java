@@ -8,8 +8,8 @@ import com.kakaoscan.profile.domain.enums.LogType;
 import com.kakaoscan.profile.domain.exception.ApiException;
 import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.global.oauth.annotation.UserAttributes;
+import com.kakaoscan.profile.global.security.annotation.AnyRoleAccess;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,7 +28,7 @@ public class UserActionLogController extends ApiBaseController {
     private final KafkaProducerService producerService;
 
     @PostMapping("/log")
-    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADMIN')")
+    @AnyRoleAccess
     public void log(@RequestBody(required = false) UserLogDTO userLogDTO, @UserAttributes UserDTO attributes, HttpServletRequest request) {
         if (userLogDTO == null) {
             throw new ApiException(ApiErrorCase.INVALID_PARAMETER);
