@@ -1,7 +1,7 @@
-package com.kakaoscan.profile.domain.client;
+package com.kakaoscan.profile.domain.socket.client;
 
-import com.kakaoscan.profile.domain.bridge.BridgeInstance;
-import com.kakaoscan.profile.domain.bridge.ClientPayload;
+import com.kakaoscan.profile.domain.socket.common.BridgeInstance;
+import com.kakaoscan.profile.domain.socket.common.ClientPayload;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;

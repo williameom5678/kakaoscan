@@ -7,7 +7,7 @@ import com.kakaoscan.profile.domain.enums.LogType;
 import com.kakaoscan.profile.domain.enums.Role;
 import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.domain.service.UserRequestService;
-import com.kakaoscan.profile.global.oauth.OAuthAttributes;
+import com.kakaoscan.profile.domain.model.OAuthAttributes;
 import com.kakaoscan.profile.global.session.instance.SessionManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

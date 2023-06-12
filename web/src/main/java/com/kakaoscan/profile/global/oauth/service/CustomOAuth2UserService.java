@@ -7,7 +7,7 @@ import com.kakaoscan.profile.domain.enums.LogType;
 import com.kakaoscan.profile.domain.enums.Role;
 import com.kakaoscan.profile.domain.kafka.service.KafkaProducerService;
 import com.kakaoscan.profile.domain.repository.UserRepository;
-import com.kakaoscan.profile.global.oauth.OAuthAttributes;
+import com.kakaoscan.profile.domain.model.OAuthAttributes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

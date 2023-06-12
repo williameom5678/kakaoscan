@@ -2,7 +2,7 @@ package com.kakaoscan.profile.global.security.service;
 
 import com.kakaoscan.profile.domain.entity.User;
 import com.kakaoscan.profile.domain.repository.UserRepository;
-import com.kakaoscan.profile.global.oauth.OAuthAttributes;
+import com.kakaoscan.profile.domain.model.OAuthAttributes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.GrantedAuthority;

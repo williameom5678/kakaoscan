@@ -1,8 +1,8 @@
-package com.kakaoscan.profile.domain.server;
+package com.kakaoscan.profile.domain.socket.server;
 
-import com.kakaoscan.profile.domain.bridge.BridgeInstance;
-import com.kakaoscan.profile.domain.bridge.ClientPayload;
-import com.kakaoscan.profile.domain.client.NettyClientInstance;
+import com.kakaoscan.profile.domain.socket.common.BridgeInstance;
+import com.kakaoscan.profile.domain.socket.common.ClientPayload;
+import com.kakaoscan.profile.domain.socket.client.NettyClientInstance;
 import com.kakaoscan.profile.domain.dto.UserDTO;
 import com.kakaoscan.profile.domain.enums.KafkaEventType;
 import com.kakaoscan.profile.domain.enums.MessageSendType;

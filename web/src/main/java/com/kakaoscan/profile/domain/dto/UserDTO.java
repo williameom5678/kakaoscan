@@ -3,7 +3,7 @@ package com.kakaoscan.profile.domain.dto;
 import com.kakaoscan.profile.domain.entity.User;
 import com.kakaoscan.profile.domain.entity.UserRequestUnlock;
 import com.kakaoscan.profile.domain.enums.Role;
-import com.kakaoscan.profile.global.oauth.OAuthAttributes;
+import com.kakaoscan.profile.domain.model.OAuthAttributes;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;

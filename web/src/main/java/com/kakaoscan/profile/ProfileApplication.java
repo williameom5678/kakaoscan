@@ -1,7 +1,7 @@
 package com.kakaoscan.profile;
 
-import com.kakaoscan.profile.domain.client.NettyClient;
-import com.kakaoscan.profile.domain.client.NettyClientInstance;
+import com.kakaoscan.profile.domain.socket.client.NettyClient;
+import com.kakaoscan.profile.domain.socket.client.NettyClientInstance;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;

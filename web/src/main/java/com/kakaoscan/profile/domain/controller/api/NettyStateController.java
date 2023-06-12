@@ -1,6 +1,6 @@
 package com.kakaoscan.profile.domain.controller.api;
 
-import com.kakaoscan.profile.domain.client.NettyClientInstance;
+import com.kakaoscan.profile.domain.socket.client.NettyClientInstance;
 import com.kakaoscan.profile.domain.enums.ApiErrorCase;
 import com.kakaoscan.profile.domain.exception.ApiException;
 import lombok.RequiredArgsConstructor;

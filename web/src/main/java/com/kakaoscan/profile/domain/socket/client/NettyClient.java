@@ -1,4 +1,4 @@
-package com.kakaoscan.profile.domain.client;
+package com.kakaoscan.profile.domain.socket.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;

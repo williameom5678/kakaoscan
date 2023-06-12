@@ -1,11 +1,10 @@
-package com.kakaoscan.profile.global.oauth;
+package com.kakaoscan.profile.domain.model;
 
 import com.kakaoscan.profile.domain.enums.Role;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.Transient;
 import java.util.Collection;
 import java.util.Map;
 
@@ -37,7 +36,6 @@ public class OAuthAttributes implements UserDetails {
                 .build();
     }
     
-    @Transient
     private Collection<GrantedAuthority> authorities;
 
     @Override
