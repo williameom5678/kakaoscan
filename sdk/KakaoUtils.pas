@@ -421,6 +421,29 @@ begin
   Result:= WaitFor(Thread, 3 * 1000);
 end;
 
+function SafeImageMenuClick(x, y: Integer): Boolean;
+var
+  BeforeTick: DWORD;
+  BeforeImageShowCount: DWORD;
+begin
+  SharableMemory.SharableInstance.UpdateMemory;
+  BeforeImageShowCount:= SharableMemory.SharableInstance.pImageShowCount;
+
+  Click(ViewFriendHandle, x, y);
+
+  BeforeTick:= GetTickCount + 1000;
+  while BeforeTick > GetTickCount do
+  begin
+    Sleep(50);
+
+    SharableMemory.SharableInstance.UpdateMemory;
+    if SharableMemory.SharableInstance.pImageShowCount <> BeforeImageShowCount then
+      Exit(True);
+  end;
+
+  Exit(False);
+end;
+
 function TKakao.ViewProfileImage(CustomName: String): Boolean;
 var
   Thread: TThread;
@@ -432,8 +455,6 @@ var
   FileCase: Array [0..1] of String;
   ViewFriendBitmap: TBitmap;
   BaseDir: WideString;
-  BeforeTick: DWORD;
-  BeforeCount: DWORD;
 begin
   Thread:= TThread.CreateAnonymousThread(procedure
   begin
@@ -454,23 +475,6 @@ begin
 
     var Step:= 1;
 
-    const SafeImageMenuClick = function(x, y: Integer): Boolean
-    begin
-      BeforeCount:= SharableMemory.SharableInstance.pImageShowCount;
-      Click(ViewFriendHandle, x, y);
-
-      BeforeTick:= GetTickCount;
-      while BeforeTick + 1250 > GetTickCount do
-      begin
-        Sleep(50);
-
-        if SharableMemory.SharableInstance.pImageShowCount = BeforeCount then
-          Exit(True);
-      end;
-
-      Exit(False);
-    end;
-
     while True do
     begin
       try
@@ -489,26 +493,33 @@ begin
               Exit;
           end;
 
-          SharableMemory.SharableInstance.UpdateMemory;
+
+          var tStep:= 1;
           var IsSuccess:= False;
           if Step = 1 then
           begin
+            SharableMemory.SharableInstance.UpdateMemory;
             SharableMemory.SharableInstance.gSaveStep:= 1;
+            SharableMemory.SharableInstance.WriteMemory;
             IsSuccess:= SafeImageMenuClick(150, 390);
           end else
           begin
+            tStep:= 2;
+            SharableMemory.SharableInstance.UpdateMemory;
             SharableMemory.SharableInstance.gSaveStep:= 2;
+            SharableMemory.SharableInstance.WriteMemory;
             IsSuccess:= SafeImageMenuClick(20, 20);
           end;
-          SharableMemory.SharableInstance.WriteMemory;
+
+          repeat
+            Sleep(10);
+            SharableMemory.SharableInstance.UpdateMemory;
+          until (SharableMemory.SharableInstance.gSaveStep = tStep);
 
           if not IsSuccess then
           begin
             Inc(GetViewProfileHandleCount);
             Continue;
-          end
-          else begin
-            Sleep(1000);
           end;
 
           // 프로필 이미지 뷰어 핸들을 구한다
@@ -588,7 +599,7 @@ begin
 
                   for var f in FileCase do
                   begin
-                    if (FileExists(f)) And (FileSize(f) > 2100) then // > 1kb
+                    if (FileExists(f)) And (FileSize(f) > 2100) then
                     begin
                       IsExists:= True;
                       break;
@@ -628,10 +639,15 @@ begin
 end;
 
 function TKakao.ViewPreviewImage: Boolean;
+type TFirstImage = record
+  Path: String;
+  Point: TPoint;
+end;
 var
   Thread: TThread;
   Source: String;
   ViewFriendBitmap: TBitmap;
+  FirstImage: Array [0..1] of TFirstImage;
 begin
   Thread:= TThread.CreateAnonymousThread(procedure
   begin
@@ -650,26 +666,52 @@ begin
     try
       FState:= TState.ViewProfileImage;
 
+      const FriendCustomName = StrToMD5(AnsiString(SharableMemory.SharableInstance.GetFriendCustomName));
+
       ViewFriendBitmap:= GetProfileScreen(ViewFriendHandle);
       try
-        ViewFriendBitmap.SaveToFile(Format('%s%s\%s\preview.jpg', [ROOT, StrToMD5(AnsiString(SharableMemory.SharableInstance.GetFriendCustomName)), IIS_PREVIEW_PATH]));
+        ViewFriendBitmap.SaveToFile(Format('%s%s\%s\preview.jpg', [ROOT, FriendCustomName, IIS_PREVIEW_PATH]));
       finally
         ViewFriendBitmap.Free;
       end;
 
-      const firstProfileImage = Format('%s%s\%s\1.mp4.jpg', [ROOT, StrToMD5(AnsiString(SharableMemory.SharableInstance.GetFriendCustomName)), IIS_PROFILE_PATH]);
-      if not FileExists(firstProfileImage) then
+      FirstImage[0].Path:= Format('%s%s\%s\1.mp4.jpg', [ROOT, FriendCustomName, IIS_PROFILE_PATH]);
+      FirstImage[0].Point:= TPoint.Create(150, 390);
+      FirstImage[1].Path:= Format('%s%s\%s\1.mp4.jpg', [ROOT, FriendCustomName, IIS_BG_PATH]);
+      FirstImage[1].Point:= TPoint.Create(20, 20);
+
+      for var i:= 0 to 1 do
       begin
-        for var i := 1 to 4 do
-          Click(ViewFriendHandle, 150, 390);
+        SharableMemory.SharableInstance.UpdateMemory;
+        SharableMemory.SharableInstance.gSaveStep:= i + 1;
+        SharableMemory.SharableInstance.WriteMemory;
+
+        repeat
+          Sleep(10);
+          SharableMemory.SharableInstance.UpdateMemory;
+        until (SharableMemory.SharableInstance.gSaveStep = i + 1);
+
+        if (not FileExists(FirstImage[i].Path)) And (SafeImageMenuClick(FirstImage[i].Point.x, FirstImage[i].Point.y)) then
+        begin
+
+          const BeforeTick = GetTickCount + 500;
+          while GetTickCount < BeforeTick do
+          begin
+            Sleep(10);
+            if (FileExists(FirstImage[i].Path)) And (FileSize(FirstImage[i].Path) > 2100) then
+            begin
+              break;
+            end;
+          end;
+
+          Source:= SharableMemory.SharableInstance.GetFriendCustomName;
+          ViewProfileHandle:= 0;
+          EnumWindows(@GetViewProfileHandleCallback, DWORD(Source));
+        end;
+
+        if ViewProfileHandle > 0 then
+          SendMessage(ViewProfileHandle, WM_CLOSE, 0, 0);
       end;
-
-      Sleep(500);
-      Source:= SharableMemory.SharableInstance.GetFriendCustomName;
-      ViewProfileHandle:= 0;
-      EnumWindows(@GetViewProfileHandleCallback, DWORD(Source));
-
-      SendMessage(ViewProfileHandle, WM_CLOSE, 0, 0);
 
     finally
       LeaveCriticalSection(CriticalSection);
